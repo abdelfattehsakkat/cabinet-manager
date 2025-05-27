@@ -1,0 +1,79 @@
+<div class="patient-form-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{ isEditMode ? 'Modifier Patient' : 'Nouveau Patient' }}</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="patientForm" (ngSubmit)="onSubmit()">
+        <div class="form-row">
+          <mat-form-field>
+            <mat-label>Prénom</mat-label>
+            <input matInput formControlName="firstName" required>
+            <mat-error>{{getErrorMessage('firstName')}}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Nom</mat-label>
+            <input matInput formControlName="lastName" required>
+            <mat-error>{{getErrorMessage('lastName')}}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field>
+            <mat-label>Date de naissance</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="dateOfBirth" required>
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            <mat-error>{{getErrorMessage('dateOfBirth')}}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Genre</mat-label>
+            <select matNativeControl formControlName="gender" required>
+              <option value="male">Homme</option>
+              <option value="female">Femme</option>
+              <option value="other">Autre</option>
+            </select>
+            <mat-error>{{getErrorMessage('gender')}}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field>
+            <mat-label>Téléphone</mat-label>
+            <input matInput formControlName="phoneNumber" required>
+            <mat-error>{{getErrorMessage('phoneNumber')}}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" required type="email">
+            <mat-error>{{getErrorMessage('email')}}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field class="full-width">
+          <mat-label>Adresse</mat-label>
+          <input matInput formControlName="address" required>
+          <mat-error>{{getErrorMessage('address')}}</mat-error>
+        </mat-form-field>
+
+        <div formGroupName="medicalHistory">
+          <h3>Antécédents médicaux</h3>
+          <mat-form-field class="full-width">
+            <mat-label>Notes médicales</mat-label>
+            <textarea matInput formControlName="notes"></textarea>
+          </mat-form-field>
+        </div>
+
+        <div class="button-row">
+          <button mat-button type="button" (click)="onCancel()">Annuler</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="!patientForm.valid">
+            {{ isEditMode ? 'Mettre à jour' : 'Créer' }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

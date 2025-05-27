@@ -1,0 +1,64 @@
+<h2 mat-dialog-title>{{data.appointment ? 'Modifier le Rendez-vous' : 'Nouveau Rendez-vous'}}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
+    <mat-form-field class="full-width">
+      <mat-label>Patient</mat-label>
+      <input type="text" matInput formControlName="patientName" [matAutocomplete]="auto" required>
+      <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayPatientFn" (optionSelected)="onPatientSelected($event.option.value)">
+        <mat-option *ngFor="let patient of filteredPatients | async" [value]="patient">
+          {{patient.firstName}} {{patient.lastName}}
+        </mat-option>
+      </mat-autocomplete>
+      <mat-error *ngIf="appointmentForm.get('patientId')?.invalid">Le patient est requis</mat-error>
+    </mat-form-field>
+
+    <div class="form-row">
+      <mat-form-field>
+        <mat-label>Date</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="date" required>
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+        <mat-error *ngIf="appointmentForm.get('date')?.invalid">La date est requise</mat-error>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Heure</mat-label>
+        <input matInput type="time" formControlName="time" required>
+        <mat-error *ngIf="appointmentForm.get('time')?.invalid">L'heure est requise</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field>
+        <mat-label>Durée (minutes)</mat-label>
+        <input matInput type="number" formControlName="duration" min="15" max="120" required>
+        <mat-error *ngIf="appointmentForm.get('duration')?.invalid">
+          La durée doit être entre 15 et 120 minutes
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Type</mat-label>
+        <mat-select formControlName="type" required>
+          <mat-option *ngFor="let type of appointmentTypes" [value]="type">
+            {{type}}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="appointmentForm.get('type')?.invalid">Le type est requis</mat-error>
+      </mat-form-field>
+    </div>
+
+    <mat-form-field class="full-width">
+      <mat-label>Notes</mat-label>
+      <textarea matInput formControlName="notes" rows="3"></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Annuler</button>
+  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!appointmentForm.valid">
+    {{data.appointment ? 'Modifier' : 'Créer'}}
+  </button>
+</mat-dialog-actions>

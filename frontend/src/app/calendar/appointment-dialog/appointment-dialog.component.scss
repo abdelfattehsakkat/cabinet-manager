@@ -1,0 +1,42 @@
+:host {
+  display: block;
+  min-width: 350px;
+  max-width: 500px;
+  width: 90vw;
+}
+
+.mat-mdc-dialog-content {
+  max-height: 80vh;
+  padding: 20px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  mat-form-field {
+    flex: 1;
+  }
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+mat-dialog-actions {
+  padding: 16px;
+  margin-bottom: 0;
+}
+
+@media (max-width: 480px) {
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}

@@ -1,0 +1,50 @@
+<div class="calendar-container">
+  <div class="calendar-header">
+    <h1>Calendrier des Rendez-vous</h1>
+    <mat-form-field>
+      <mat-label>Sélectionner une date</mat-label>
+      <input matInput [matDatepicker]="picker" [value]="selectedDate" (dateChange)="onDateSelected($event.value)">
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+  </div>
+
+  <div class="schedule-container mat-elevation-z2">
+    <div class="time-slots">
+      <div class="time-slot" *ngFor="let slot of getTimeSlots()">
+        <div class="time-label">{{slot}}</div>
+        <div class="appointment-slot" 
+             [class.has-appointment]="getAppointmentForSlot(slot)"
+             (click)="getAppointmentForSlot(slot) ? showAppointmentDetails(getAppointmentForSlot(slot)!) : addAppointment(slot)">
+          <div *ngIf="getAppointmentForSlot(slot) as appointment" class="appointment-card">
+            <div class="appointment-header">
+              <strong>{{appointment.patientName}}</strong>
+              <span class="appointment-type">{{appointment.type}}</span>
+              <button mat-icon-button color="warn" class="delete-button" (click)="$event.stopPropagation(); deleteAppointment(appointment)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+            <div class="appointment-details" *ngIf="appointment.notes">
+              {{appointment.notes}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <full-calendar #calendar [options]="calendarOptions">
+    <ng-template #eventContent let-arg>
+      <div class="event-content">
+        <span>{{ arg.event.title }}</span>
+        <button mat-icon-button class="delete-btn" (click)="$event.stopPropagation(); deleteAppointment(arg.event.extendedProps.appointment)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </ng-template>
+  </full-calendar>
+
+  <button mat-fab color="primary" class="add-appointment-button" (click)="addAppointment()">
+    <mat-icon>add</mat-icon>
+  </button>
+</div>
