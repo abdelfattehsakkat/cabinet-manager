@@ -37,6 +37,8 @@ export class AppointmentDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: AppointmentDialogData,
     private patientService: PatientService
   ) {
+    console.log('Appointment dialog data:', data);
+    
     const defaultAppointment = {
       patientId: '',
       patientName: '',
@@ -47,10 +49,38 @@ export class AppointmentDialogComponent implements OnInit {
     };
 
     const appointment = data.appointment || defaultAppointment;
+    console.log('Appointment data:', appointment);
+    
+    // Extract patient information properly
+    let patientId = '';
+    let patientName = '';
+    
+    if (appointment) {
+      // Handle case where we have a patient ID directly
+      if (appointment.patient && typeof appointment.patient === 'string') {
+        patientId = appointment.patient;
+      } else if (appointment.patientId) {
+        patientId = appointment.patientId;
+      }
+      
+      // Set patient name from patientName field if it exists
+      if (appointment.patientName) {
+        patientName = appointment.patientName;
+      } 
+      // Try to extract name from patient object if it exists
+      else if (appointment.patient && typeof appointment.patient === 'object') {
+        const patient = appointment.patient as any;
+        if (patient.firstName && patient.lastName) {
+          patientName = `${patient.firstName} ${patient.lastName}`;
+        }
+      }
+    }
+    
+    console.log('Extracted patient info:', { patientId, patientName });
 
     this.appointmentForm = this.fb.group({
-      patientId: [appointment.patientId, [Validators.required]],
-      patientName: [appointment.patientName],
+      patientId: [patientId, [Validators.required]],
+      patientName: [patientName],
       date: [appointment.date, [Validators.required]],
       time: [this.getTimeString(appointment.date), [Validators.required]],
       duration: [appointment.duration, [Validators.required, Validators.min(15), Validators.max(120)]],
@@ -62,6 +92,25 @@ export class AppointmentDialogComponent implements OnInit {
   ngOnInit() {
     this.loadPatients();
     this.setupPatientAutocomplete();
+    
+    // If we have a patientId but no patientName, fetch the patient details
+    const patientId = this.appointmentForm.get('patientId')?.value;
+    const patientName = this.appointmentForm.get('patientName')?.value;
+    
+    if (patientId && (!patientName || patientName === 'undefined undefined')) {
+      console.log('Fetching patient details for ID:', patientId);
+      this.patientService.getPatient(patientId).subscribe({
+        next: (patient) => {
+          console.log('Patient details fetched:', patient);
+          this.appointmentForm.patchValue({
+            patientName: `${patient.firstName} ${patient.lastName}`
+          });
+        },
+        error: (error) => {
+          console.error('Error fetching patient details:', error);
+        }
+      });
+    }
   }
 
   private loadPatients() {
@@ -86,14 +135,34 @@ export class AppointmentDialogComponent implements OnInit {
   }
 
   onPatientSelected(patient: Patient) {
-    this.appointmentForm.patchValue({
-      patientId: patient._id,
-      patientName: `${patient.firstName} ${patient.lastName}`
-    });
+    console.log('Patient selected:', patient);
+    if (patient && patient._id) {
+      this.appointmentForm.patchValue({
+        patientId: patient._id,
+        patientName: `${patient.firstName} ${patient.lastName}`
+      });
+      console.log('Form values after patient selection:', this.appointmentForm.value);
+    }
   }
 
-  displayPatientFn(patient: Patient): string {
-    return patient ? `${patient.firstName} ${patient.lastName}` : '';
+  displayPatientFn(patient: Patient | string): string {
+    // Handle case when input is already a string
+    if (typeof patient === 'string') {
+      return patient;
+    }
+    
+    // Handle case when patient is null or undefined
+    if (!patient) {
+      return '';
+    }
+    
+    // Check if firstName and lastName properties exist
+    if (patient.firstName && patient.lastName) {
+      return `${patient.firstName} ${patient.lastName}`;
+    }
+    
+    // Fallback if we have a patient object but missing name properties
+    return patient._id ? `Patient ${patient._id}` : '';
   }
 
   private getTimeString(date: Date): string {
@@ -110,10 +179,23 @@ export class AppointmentDialogComponent implements OnInit {
       // Convert to UTC
       const dateUTC = new Date(appointmentDate.getTime() - appointmentDate.getTimezoneOffset() * 60000);
 
-      this.dialogRef.close({
+      // Find the selected patient to get first name and last name
+      const patientId = formValue.patientId;
+      const selectedPatient = this.patients.find(patient => patient._id === patientId);
+      
+      // Include patient first name and last name in the result
+      const result = {
         ...formValue,
         date: dateUTC
-      });
+      };
+      
+      // Add patient first and last name if found
+      if (selectedPatient) {
+        result.patientFirstName = selectedPatient.firstName;
+        result.patientLastName = selectedPatient.lastName;
+      }
+
+      this.dialogRef.close(result);
     }
   }
 

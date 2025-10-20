@@ -5,8 +5,20 @@ import { tap } from 'rxjs/operators';
 
 export interface Appointment {
   _id?: string;
-  patient: string;
-  doctor: string;
+  patient: string | {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    [key: string]: any;
+  };
+  doctor: string | {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    [key: string]: any;
+  };
+  patientFirstName: string;
+  patientLastName: string;
   patientName?: string;
   date: Date;
   duration: number;
@@ -22,6 +34,23 @@ export class AppointmentService {
   private apiUrl = 'http://localhost:3000/api/appointments';
 
   constructor(private http: HttpClient) { }
+
+  // Utility method to ensure backward compatibility with appointments
+  // that may not have the new patientFirstName/patientLastName fields
+  getPatientFullName(appointment: Appointment): string {
+    // First try to use the dedicated fields
+    if (appointment.patientFirstName && appointment.patientLastName) {
+      return `${appointment.patientFirstName} ${appointment.patientLastName}`;
+    }
+    
+    // Fall back to the patient object if it's populated
+    if (typeof appointment.patient === 'object' && appointment.patient) {
+      return `${appointment.patient.firstName} ${appointment.patient.lastName}`;
+    }
+    
+    // Return a placeholder if no name is available
+    return 'Unknown Patient';
+  }
 
   getAppointments(params?: { 
     doctorId?: string; 

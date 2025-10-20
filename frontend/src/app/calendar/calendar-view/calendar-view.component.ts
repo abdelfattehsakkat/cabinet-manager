@@ -1,3 +1,4 @@
+// filepath: /Users/abdelfatteh/Documents/workspace/cabinetAI/frontend/src/app/calendar/calendar-view/calendar-view.component.ts
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { AppointmentDialogComponent } from '../appointment-dialog/appointment-dialog.component';
@@ -16,6 +17,7 @@ import { Calendar } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import { PatientService } from '../../patients/services/patient.service';
 
 @Component({
   selector: 'app-calendar-view',
@@ -60,6 +62,7 @@ export class CalendarViewComponent implements OnInit {
   constructor(
     private dialog: MatDialog,
     private appointmentService: AppointmentService,
+    private patientService: PatientService,
     private snackBar: MatSnackBar
   ) {}
 
@@ -76,7 +79,7 @@ export class CalendarViewComponent implements OnInit {
       this.appointments.forEach(appointment => {
         calendarApi.addEvent({
           id: appointment._id,
-          title: appointment.patientName || 'Patient',
+          title: appointment.patientName || this.getPatientNameFromPopulated(appointment) || 'Patient',
           start: new Date(appointment.date),
           end: new Date(new Date(appointment.date).getTime() + appointment.duration * 60000),
           extendedProps: {
@@ -85,6 +88,14 @@ export class CalendarViewComponent implements OnInit {
         });
       });
     }
+  }
+  
+  // Helper method to extract patient name from populated patient object
+  getPatientNameFromPopulated(appointment: any): string {
+    if (appointment.patient && typeof appointment.patient === 'object') {
+      return `${appointment.patient.firstName || ''} ${appointment.patient.lastName || ''}`.trim();
+    }
+    return '';
   }
 
   loadAppointments() {
@@ -124,36 +135,34 @@ export class CalendarViewComponent implements OnInit {
   }
 
   onDateSelected(date: Date) {
-    console.log('Date selected:', date);
     this.selectedDate = date;
     this.loadAppointments();
   }
 
   getTimeSlots(): string[] {
     const slots = [];
-    let hour = 8; // Start at 8 AM
+    let hour = 9; // Start at 9 AM
+    let minutes = 0;
     
     while (hour < 18) { // End at 6 PM
-      slots.push(`${hour.toString().padStart(2, '0')}:00`);
-      slots.push(`${hour.toString().padStart(2, '0')}:30`);
-      hour++;
+      slots.push(`${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
+      minutes += 30;
+      if (minutes === 60) {
+        minutes = 0;
+        hour += 1;
+      }
     }
     
     return slots;
   }
 
-  getAppointmentForSlot(timeSlot: string): Appointment | null {
+  getAppointmentForSlot(timeSlot: string): Appointment | undefined {
     const [hours, minutes] = timeSlot.split(':').map(Number);
-    const slotDate = new Date(this.selectedDate);
-    slotDate.setHours(hours, minutes, 0, 0);
-    
-    // Convert to UTC for comparison
-    const slotUTC = new Date(slotDate.getTime() - slotDate.getTimezoneOffset() * 60000);
-
     return this.appointments.find(appointment => {
       const appointmentDate = new Date(appointment.date);
-      return appointmentDate.getTime() === slotUTC.getTime();
-    }) || null;
+      return appointmentDate.getUTCHours() === hours && 
+             Math.floor(appointmentDate.getUTCMinutes() / 30) * 30 === minutes;
+    });
   }
 
   addAppointment(timeSlot?: string) {
@@ -221,26 +230,31 @@ export class CalendarViewComponent implements OnInit {
           },
           error: (error) => {
             console.error('Error updating appointment:', error);
-            const message = error.error?.message || 'Une erreur s\'est produite lors de la mise à jour du rendez-vous';
-            this.snackBar.open(message, 'Fermer', { duration: 5000 });
+            this.snackBar.open('Erreur lors de la mise à jour du rendez-vous', 'Fermer', { duration: 3000 });
           }
         });
       }
     });
   }
 
-  deleteAppointment(appointmentOrId: Appointment | string) {
-    const appointmentId = typeof appointmentOrId === 'string' ? appointmentOrId : appointmentOrId._id!;
+  deleteAppointment(appointment: Appointment) {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce rendez-vous?')) {
+      return;
+    }
+    
+    const appointmentId = typeof appointment === 'string' ? appointment : appointment._id;
+    
+    if (!appointmentId) {
+      this.snackBar.open('ID de rendez-vous invalide', 'Fermer', { duration: 3000 });
+      return;
+    }
     
     this.appointmentService.deleteAppointment(appointmentId).subscribe({
       next: () => {
-        // Remove from appointments array if it exists there
-        if (typeof appointmentOrId !== 'string') {
-          const index = this.appointments.findIndex(a => a._id === appointmentId);
-          if (index !== -1) {
-            this.appointments.splice(index, 1);
-          }
-        }
+        console.log(`Appointment ${appointmentId} deleted`);
+        
+        // Remove from appointments array
+        this.appointments = this.appointments.filter(a => a._id !== appointmentId);
         
         // Remove from calendar if it exists there
         if (this.calendar && this.calendar.getApi) {
@@ -301,8 +315,6 @@ export class CalendarViewComponent implements OnInit {
     
     // Show appointment details if not clicking delete button
     const appointment = info.event.extendedProps.appointment;
-    if (appointment) {
-      this.showAppointmentDetails(appointment);
-    }
+    this.showAppointmentDetails(appointment);
   }
 }

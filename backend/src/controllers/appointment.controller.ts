@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import Appointment, { IAppointment } from '../models/appointment.model';
 
 export const getAppointments = async (req: Request, res: Response): Promise<void> => {
@@ -23,15 +24,13 @@ export const getAppointments = async (req: Request, res: Response): Promise<void
 
         console.log('Applying filter:', filter);
         const appointments = await Appointment.find(filter)
-            .populate('patient', 'firstName lastName')
             .populate('doctor', 'firstName lastName');
 
-        // Add patient full name to each appointment
+        // Add patient full name to each appointment using stored patient names
         const appointmentsWithNames = appointments.map(appointment => {
-            const patient = appointment.patient as any;
             return {
                 ...appointment.toObject(),
-                patientName: `${patient.firstName} ${patient.lastName}`
+                patientName: `${appointment.patientFirstName} ${appointment.patientLastName}`
             };
         });
             
@@ -47,7 +46,6 @@ export const getAppointment = async (req: Request, res: Response): Promise<void>
     try {
         console.log(`[GET] /appointments/${req.params.id}`);
         const appointment = await Appointment.findById(req.params.id)
-            .populate('patient', 'firstName lastName')
             .populate('doctor', 'firstName lastName') as IAppointment | null;
             
         if (!appointment) {
@@ -55,8 +53,15 @@ export const getAppointment = async (req: Request, res: Response): Promise<void>
             res.status(404).json({ message: 'Appointment not found' });
             return;
         }
-        console.log('Found appointment:', appointment);
-        res.json(appointment);
+        
+        // Add patient name to the appointment object using stored first and last name
+        const appointmentWithName = {
+            ...appointment.toObject(),
+            patientName: `${appointment.patientFirstName} ${appointment.patientLastName}`
+        };
+        
+        console.log('Found appointment:', appointmentWithName);
+        res.json(appointmentWithName);
     } catch (error: any) {
         console.error(`[GET] /appointments/${req.params.id} - Error:`, error.message);
         res.status(500).json({ message: error.message });
@@ -110,7 +115,7 @@ const isDoctorAvailable = async (doctorId: string, date: Date, duration: number,
 export const createAppointment = async (req: Request, res: Response): Promise<void> => {
     try {
         console.log('[POST] /appointments - Request body:', req.body);
-        const { doctor, date, duration = 30 } = req.body;
+        const { patient, doctor, date, duration = 30 } = req.body;
 
         const isAvailable = await isDoctorAvailable(doctor, date, duration);
         if (!isAvailable) {
@@ -119,7 +124,24 @@ export const createAppointment = async (req: Request, res: Response): Promise<vo
             return;
         }
 
-        const appointment = await Appointment.create(req.body) as IAppointment;
+        // Fetch patient details to get first name and last name
+        const Patient = mongoose.model('Patient');
+        const patientDetails = await Patient.findById(patient);
+        
+        if (!patientDetails) {
+            console.log('Patient not found');
+            res.status(400).json({ message: 'Patient not found' });
+            return;
+        }
+        
+        // Add patient first name and last name to the appointment
+        const appointmentData = {
+            ...req.body,
+            patientFirstName: patientDetails.firstName,
+            patientLastName: patientDetails.lastName
+        };
+
+        const appointment = await Appointment.create(appointmentData) as IAppointment;
         console.log('Created appointment:', appointment);
         res.status(201).json(appointment);
     } catch (error: any) {
@@ -131,7 +153,7 @@ export const createAppointment = async (req: Request, res: Response): Promise<vo
 export const updateAppointment = async (req: Request, res: Response): Promise<void> => {
     try {
         console.log(`[PUT] /appointments/${req.params.id} - Request body:`, req.body);
-        const { doctor, date, duration = 30 } = req.body;
+        const { patient, doctor, date, duration = 30 } = req.body;
 
         if (date || doctor) {
             const isAvailable = await isDoctorAvailable(
@@ -147,9 +169,28 @@ export const updateAppointment = async (req: Request, res: Response): Promise<vo
             }
         }
 
+        // Prepare update data
+        let updateData = { ...req.body };
+        
+        // If patient ID is changing, update patient names
+        if (patient) {
+            const Patient = mongoose.model('Patient');
+            const patientDetails = await Patient.findById(patient);
+            
+            if (!patientDetails) {
+                console.log('Patient not found');
+                res.status(400).json({ message: 'Patient not found' });
+                return;
+            }
+            
+            // Add patient first name and last name to the update
+            updateData.patientFirstName = patientDetails.firstName;
+            updateData.patientLastName = patientDetails.lastName;
+        }
+
         const appointment = await Appointment.findByIdAndUpdate(
             req.params.id,
-            req.body,
+            updateData,
             { new: true, runValidators: true }
         ).populate('patient', 'firstName lastName')
          .populate('doctor', 'firstName lastName') as IAppointment | null;

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { Appointment } from '../services/appointment.service';
+import { Appointment, AppointmentService } from '../services/appointment.service';
 
 @Component({
   selector: 'app-appointment-details',
@@ -20,8 +20,13 @@ import { Appointment } from '../services/appointment.service';
 export class AppointmentDetailsComponent {
   constructor(
     public dialogRef: MatDialogRef<AppointmentDetailsComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { appointment: Appointment }
+    @Inject(MAT_DIALOG_DATA) public data: { appointment: Appointment },
+    private appointmentService: AppointmentService
   ) {}
+
+  getPatientName(): string {
+    return this.appointmentService.getPatientFullName(this.data.appointment);
+  }
 
   edit() {
     console.log('Edit button clicked');

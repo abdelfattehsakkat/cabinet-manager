@@ -43,8 +43,8 @@ export class PatientFormComponent implements OnInit {
       lastName: ['', [Validators.required]],
       dateOfBirth: ['', [Validators.required]],
       gender: ['', [Validators.required]],
-      phoneNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
-      email: ['', [Validators.required, Validators.email]],
+  phoneNumber: ['', [Validators.required, Validators.pattern(/^[0-9]*$/)]],
+      email: ['', [Validators.email]],
       address: ['', [Validators.required]],
       medicalHistory: this.fb.group({
         conditions: [[]],
@@ -81,7 +81,7 @@ export class PatientFormComponent implements OnInit {
   onSubmit() {
     if (this.patientForm.valid) {
       console.log('Form submitted with values:', this.patientForm.value);
-      
+
       if (this.isEditMode && this.patientId) {
         console.log('Updating existing patient');
         this.patientService.updatePatient(this.patientId, this.patientForm.value).subscribe({
