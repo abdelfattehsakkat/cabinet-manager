@@ -43,9 +43,17 @@
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef> Actions </th>
         <td mat-cell *matCellDef="let patient">
-          <button mat-icon-button color="primary" (click)="editPatient(patient._id)">
-            <mat-icon>edit</mat-icon>
-          </button>
+          <div class="action-buttons">
+            <button mat-icon-button class="view-button" (click)="viewPatient(patient)" matTooltip="Voir les détails">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button mat-icon-button class="edit-button" (click)="editPatient(patient._id)" matTooltip="Modifier">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button class="delete-button" (click)="deletePatient(patient)" matTooltip="Supprimer">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
         </td>
       </ng-container>
 
@@ -60,3 +68,81 @@
     <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page"></mat-paginator>
   </div>
 </div>
+
+<!-- Patient Details Dialog Template -->
+<ng-template #patientDetailsDialog>
+  <div class="patient-details-dialog">
+    <h2 mat-dialog-title>
+      <mat-icon>person</mat-icon>
+      Détails du Patient
+    </h2>
+    
+    <mat-dialog-content class="patient-details-content">
+      <div class="patient-info-grid">
+        <div class="info-item">
+          <mat-icon>person_outline</mat-icon>
+          <div class="info-content">
+            <label>Nom complet</label>
+            <span>{{selectedPatient?.firstName}} {{selectedPatient?.lastName}}</span>
+          </div>
+        </div>
+        
+        <div class="info-item">
+          <mat-icon>cake</mat-icon>
+          <div class="info-content">
+            <label>Date de naissance</label>
+            <span>{{formatDate(selectedPatient?.dateOfBirth)}}</span>
+          </div>
+        </div>
+        
+        <div class="info-item">
+          <mat-icon>wc</mat-icon>
+          <div class="info-content">
+            <label>Genre</label>
+            <span>{{selectedPatient?.gender}}</span>
+          </div>
+        </div>
+        
+        <div class="info-item">
+          <mat-icon>phone</mat-icon>
+          <div class="info-content">
+            <label>Téléphone</label>
+            <span>{{selectedPatient?.phoneNumber}}</span>
+          </div>
+        </div>
+        
+        <div class="info-item" *ngIf="selectedPatient?.email">
+          <mat-icon>email</mat-icon>
+          <div class="info-content">
+            <label>Email</label>
+            <span>{{selectedPatient?.email}}</span>
+          </div>
+        </div>
+        
+        <div class="info-item" *ngIf="selectedPatient?.address">
+          <mat-icon>home</mat-icon>
+          <div class="info-content">
+            <label>Adresse</label>
+            <span>{{selectedPatient?.address}}</span>
+          </div>
+        </div>
+        
+        <div class="info-item medical-history" *ngIf="selectedPatient?.medicalHistory?.notes">
+          <mat-icon>medical_services</mat-icon>
+          <div class="info-content">
+            <label>Notes médicales</label>
+            <span>{{selectedPatient?.medicalHistory?.notes}}</span>
+          </div>
+        </div>
+      </div>
+    </mat-dialog-content>
+    
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>Fermer</button>
+      <button mat-raised-button color="primary" (click)="editPatientFromDialog()">
+        <mat-icon>edit</mat-icon>
+        Modifier
+      </button>
+    </mat-dialog-actions>
+  </div>
+</ng-template>

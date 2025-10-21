@@ -43,11 +43,14 @@
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef> Actions </th>
         <td mat-cell *matCellDef="let user">
-          <button mat-icon-button color="primary" (click)="editUser(user)">
-            <mat-icon>edit</mat-icon>
+          <button mat-button color="accent" (click)="viewUser(user)" matTooltip="Voir les détails">
+            👁️ Voir
           </button>
-          <button mat-icon-button color="warn" (click)="deleteUser(user)">
-            <mat-icon>delete</mat-icon>
+          <button mat-button color="primary" (click)="editUser(user)" matTooltip="Modifier">
+            ✏️ Modifier
+          </button>
+          <button mat-button color="warn" (click)="deleteUser(user)" matTooltip="Supprimer">
+            🗑️ Supprimer
           </button>
         </td>
       </ng-container>
@@ -63,3 +66,73 @@
     <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Sélectionner la page"></mat-paginator>
   </div>
 </div>
+
+<!-- User Details Dialog Template -->
+<ng-template #userDetailsDialog>
+  <div class="user-details-dialog">
+    <h2 mat-dialog-title>
+      <mat-icon>person</mat-icon>
+      Détails de l'utilisateur
+    </h2>
+    
+    <mat-dialog-content class="user-details-content">
+      <div class="user-info-grid">
+        <div class="info-item">
+          <mat-icon>account_circle</mat-icon>
+          <div class="info-content">
+            <label>Nom d'utilisateur</label>
+            <span>{{selectedUser?.username}}</span>
+          </div>
+        </div>
+        
+        <div class="info-item">
+          <mat-icon>email</mat-icon>
+          <div class="info-content">
+            <label>Email</label>
+            <span>{{selectedUser?.email}}</span>
+          </div>
+        </div>
+        
+        <div class="info-item">
+          <mat-icon>person_outline</mat-icon>
+          <div class="info-content">
+            <label>Prénom</label>
+            <span>{{selectedUser?.firstName}}</span>
+          </div>
+        </div>
+        
+        <div class="info-item">
+          <mat-icon>person_outline</mat-icon>
+          <div class="info-content">
+            <label>Nom</label>
+            <span>{{selectedUser?.lastName}}</span>
+          </div>
+        </div>
+        
+        <div class="info-item">
+          <mat-icon>security</mat-icon>
+          <div class="info-content">
+            <label>Rôle</label>
+            <span class="role-badge">{{selectedUser?.role}}</span>
+          </div>
+        </div>
+        
+        <div class="info-item" *ngIf="selectedUser?.createdAt">
+          <mat-icon>schedule</mat-icon>
+          <div class="info-content">
+            <label>Date de création</label>
+            <span>{{selectedUser?.createdAt | date:'dd/MM/yyyy à HH:mm'}}</span>
+          </div>
+        </div>
+      </div>
+    </mat-dialog-content>
+    
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>Fermer</button>
+      <button mat-raised-button color="primary" (click)="editUserFromDialog()">
+        <mat-icon>edit</mat-icon>
+        Modifier
+      </button>
+    </mat-dialog-actions>
+  </div>
+</ng-template>

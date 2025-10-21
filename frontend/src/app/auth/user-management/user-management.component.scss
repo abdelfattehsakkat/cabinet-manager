@@ -1,0 +1,168 @@
+.user-management-container {
+  padding: 20px;
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    
+    h1 {
+      margin: 0;
+      color: #333;
+    }
+  }
+  
+  .filter {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  
+  .table-container {
+    border-radius: 8px;
+    overflow: hidden;
+    
+    table {
+      width: 100%;
+    }
+  }
+}
+
+// User Details Dialog Styles
+::ng-deep .user-details-dialog-panel {
+  .mat-mdc-dialog-container {
+    border-radius: 12px;
+    padding: 0;
+    overflow: hidden;
+  }
+}
+
+.user-details-dialog {
+  .mat-mdc-dialog-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    margin: 0;
+    padding: 20px 24px;
+    font-size: 20px;
+    font-weight: 500;
+    
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+  }
+  
+  .user-details-content {
+    padding: 24px;
+    
+    .user-info-grid {
+      display: grid;
+      gap: 20px;
+      
+      .info-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+        transition: all 0.3s ease;
+        
+        &:hover {
+          background: #e3f2fd;
+          border-left-color: #2196f3;
+        }
+        
+        mat-icon {
+          color: #667eea;
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+          flex-shrink: 0;
+        }
+        
+        .info-content {
+          flex: 1;
+          
+          label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            font-weight: 500;
+          }
+          
+          span {
+            font-size: 16px;
+            color: #333;
+            font-weight: 400;
+            
+            &.role-badge {
+              display: inline-block;
+              padding: 4px 12px;
+              background: #667eea;
+              color: white;
+              border-radius: 20px;
+              font-size: 14px;
+              font-weight: 500;
+              text-transform: capitalize;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  .mat-mdc-dialog-actions {
+    padding: 16px 24px;
+    background: #f8f9fa;
+    margin: 0;
+    
+    button {
+      margin-left: 8px;
+      
+      &[mat-raised-button] {
+        border-radius: 6px;
+        padding: 0 20px;
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .user-management-container {
+    padding: 10px;
+    
+    .header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      
+      h1 {
+        text-align: center;
+      }
+    }
+  }
+  
+  .user-details-dialog {
+    .user-details-content {
+      padding: 16px;
+      
+      .user-info-grid {
+        gap: 12px;
+        
+        .info-item {
+          padding: 12px;
+        }
+      }
+    }
+  }
+}

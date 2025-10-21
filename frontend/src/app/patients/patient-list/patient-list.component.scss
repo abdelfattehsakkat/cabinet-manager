@@ -30,8 +30,68 @@
       }
 
       .mat-column-actions {
-        width: 80px;
+        width: 120px;
         text-align: center;
+        
+        .action-buttons {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 4px;
+          
+          .mat-mdc-icon-button {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            padding: 0;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            position: relative;
+            
+            .mat-icon {
+              font-size: 18px;
+              width: 18px;
+              height: 18px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+            }
+            
+            &.view-button {
+              color: #1976D2; // Bleu foncé
+              
+              &:hover {
+                background-color: rgba(25, 118, 210, 0.1);
+                color: #0D47A1;
+              }
+            }
+            
+            &.edit-button {
+              color: #2196F3; // Bleu moyen
+              
+              &:hover {
+                background-color: rgba(33, 150, 243, 0.1);
+                color: #1976D2;
+              }
+            }
+            
+            &.delete-button {
+              color: #424242; // Gris foncé
+              
+              &:hover {
+                background-color: rgba(66, 66, 66, 0.1);
+                color: #212121;
+              }
+            }
+          }
+        }
       }
 
       .mat-row:hover {
@@ -48,6 +108,114 @@
     .mat-column-email,
     .mat-column-phone {
       display: none;
+    }
+  }
+}
+
+// Patient Details Dialog Styles
+::ng-deep .patient-details-dialog-panel {
+  .mat-mdc-dialog-container {
+    border-radius: 12px;
+    padding: 0;
+    overflow: hidden;
+  }
+}
+
+.patient-details-dialog {
+  .mat-mdc-dialog-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    margin: 0;
+    padding: 20px 24px;
+    font-size: 20px;
+    font-weight: 500;
+    
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+  }
+  
+  .patient-details-content {
+    padding: 24px;
+    
+    .patient-info-grid {
+      display: grid;
+      gap: 16px;
+      
+      .info-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 16px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #4CAF50;
+        transition: all 0.3s ease;
+        
+        &:hover {
+          background: #e8f5e8;
+          border-left-color: #45a049;
+        }
+        
+        &.medical-history {
+          border-left-color: #2196F3;
+          
+          &:hover {
+            border-left-color: #1976D2;
+          }
+        }
+        
+        mat-icon {
+          color: #4CAF50;
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+        
+        .info-content {
+          flex: 1;
+          
+          label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            font-weight: 500;
+          }
+          
+          span {
+            font-size: 16px;
+            color: #333;
+            font-weight: 400;
+            line-height: 1.4;
+            word-wrap: break-word;
+          }
+        }
+      }
+    }
+  }
+  
+  .mat-mdc-dialog-actions {
+    padding: 16px 24px;
+    background: #f8f9fa;
+    margin: 0;
+    
+    button {
+      margin-left: 8px;
+      
+      &[mat-raised-button] {
+        border-radius: 6px;
+        padding: 0 20px;
+      }
     }
   }
 }

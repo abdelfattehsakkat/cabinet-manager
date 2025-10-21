@@ -1,7 +1,9 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, TemplateRef } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatDialog, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
@@ -24,19 +26,26 @@ import { PatientService, Patient } from '../services/patient.service';
     MatButtonModule,
     MatIconModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatDialogModule,
+    MatTooltipModule
   ]
 })
 export class PatientListComponent implements OnInit {
+  @ViewChild('patientDetailsDialog') patientDetailsDialog!: TemplateRef<any>;
+  
   displayedColumns: string[] = ['lastName', 'firstName', 'dateOfBirth', 'phone', 'email', 'actions'];
   dataSource: MatTableDataSource<Patient>;
+  selectedPatient: Patient | null = null;
+  private patientDetailsDialogRef: MatDialogRef<any> | null = null;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   constructor(
     private router: Router,
-    private patientService: PatientService
+    private patientService: PatientService,
+    private dialog: MatDialog
   ) {
     this.dataSource = new MatTableDataSource<Patient>([]);
   }
@@ -71,7 +80,31 @@ export class PatientListComponent implements OnInit {
     this.router.navigate(['/patients/edit', id]);
   }
 
-  formatDate(date: Date): string {
+  viewPatient(patient: Patient) {
+    this.selectedPatient = patient;
+    this.patientDetailsDialogRef = this.dialog.open(this.patientDetailsDialog, {
+      width: '600px',
+      maxWidth: '90vw',
+      panelClass: 'patient-details-dialog-panel'
+    });
+  }
+
+  editPatientFromDialog() {
+    if (this.selectedPatient && this.patientDetailsDialogRef) {
+      this.patientDetailsDialogRef.close();
+      this.editPatient(this.selectedPatient._id);
+    }
+  }
+
+  deletePatient(patient: Patient) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce patient ?')) {
+      this.patientService.deletePatient(patient._id).subscribe(() => {
+        this.loadPatients();
+      });
+    }
+  }
+
+  formatDate(date: Date | undefined): string {
     if (!date) return '';
     return new Date(date).toLocaleDateString();
   }
