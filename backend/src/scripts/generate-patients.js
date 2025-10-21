@@ -48,6 +48,7 @@ function randomPatient(i) {
   const lastName = faker.helpers.arrayElement(arabicLastNames);
   
   return {
+    patientNumber: i + 1, // ID incrémental commençant par 1
     firstName: firstName,
     lastName: lastName,
     dateOfBirth: randomDateOfBirth(),
@@ -64,7 +65,7 @@ function randomPatient(i) {
 }
 
 const patients = [];
-for (let i = 0; i < 100; i++) {
+for (let i = 0; i < 500; i++) {
   patients.push(randomPatient(i));
 }
 

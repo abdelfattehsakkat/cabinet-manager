@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, switchMap } from 'rxjs';
 
 export interface Patient {
   _id: string;
+  patientNumber?: number;
   firstName: string;
   lastName: string;
   dateOfBirth: Date;
@@ -44,11 +45,24 @@ export class PatientService {
     );
   }
 
-  createPatient(patient: Partial<Patient>): Observable<Patient> {
-    console.log('Creating new patient:', patient);
-    return this.http.post<Patient>(this.apiUrl, patient).pipe(
-      tap(createdPatient => console.log('Patient created successfully:', createdPatient))
-    );
+  // Create a new patient
+  createPatient(patient: Patient): Observable<Patient> {
+    return this.http.post<Patient>(`${this.apiUrl}`, patient);
+  }
+
+  generateNextPatientNumber(): Observable<number> {
+    // Pour l'instant, on simule la génération
+    // Plus tard, on remplacera par un appel API
+    return new Observable(observer => {
+      // Simuler un appel async
+      setTimeout(() => {
+        // Pour le moment, on génère un numéro aléatoire
+        // En production, ce sera récupéré du backend
+        const nextNumber = Math.floor(Math.random() * 1000) + 1;
+        observer.next(nextNumber);
+        observer.complete();
+      }, 100);
+    });
   }
 
   updatePatient(id: string, patient: Partial<Patient>): Observable<Patient> {

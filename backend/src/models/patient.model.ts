@@ -8,6 +8,7 @@ interface PatientDocument {
 }
 
 export interface IPatient extends Document {
+    patientNumber: number;
     firstName: string;
     lastName: string;
     dateOfBirth: Date;
@@ -25,6 +26,7 @@ export interface IPatient extends Document {
 }
 
 const patientSchema = new Schema({
+    patientNumber: { type: Number, unique: true, required: true },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     dateOfBirth: { type: Date, required: true },

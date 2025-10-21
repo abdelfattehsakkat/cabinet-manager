@@ -34,7 +34,7 @@ import { PatientService, Patient } from '../services/patient.service';
 export class PatientListComponent implements OnInit {
   @ViewChild('patientDetailsDialog') patientDetailsDialog!: TemplateRef<any>;
   
-  displayedColumns: string[] = ['lastName', 'firstName', 'dateOfBirth', 'phone', 'email', 'actions'];
+  displayedColumns: string[] = ['patientNumber', 'lastName', 'firstName', 'dateOfBirth', 'phone', 'email', 'actions'];
   dataSource: MatTableDataSource<Patient>;
   selectedPatient: Patient | null = null;
   private patientDetailsDialogRef: MatDialogRef<any> | null = null;

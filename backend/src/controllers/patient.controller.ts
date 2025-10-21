@@ -1,6 +1,26 @@
 import { Request, Response } from 'express';
 import Patient, { IPatient } from '../models/patient.model';
 
+// Generate next patient number
+const generateNextPatientNumber = async (): Promise<number> => {
+    try {
+        // Find the patient with the highest patientNumber
+        const lastPatient = await Patient.findOne().sort({ patientNumber: -1 }).exec();
+        
+        if (!lastPatient || !lastPatient.patientNumber) {
+            // If no patients exist or no patientNumber field, start with 1
+            return 1;
+        }
+        
+        // Return the next number
+        return lastPatient.patientNumber + 1;
+    } catch (error) {
+        console.error('Error generating patient number:', error);
+        // Fallback to 1 if there's an error
+        return 1;
+    }
+};
+
 // Get all patients
 export const getPatients = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -38,7 +58,17 @@ export const createPatient = async (req: Request, res: Response): Promise<void> 
         console.log('[POST] /api/patients - Creating new patient');
         console.log('Request body:', req.body);
         
-        const patient = await Patient.create(req.body) as IPatient;
+        // Generate the next patient number automatically
+        const patientNumber = await generateNextPatientNumber();
+        console.log('Generated patient number:', patientNumber);
+        
+        // Add the patient number to the request body
+        const patientData = {
+            ...req.body,
+            patientNumber: patientNumber
+        };
+        
+        const patient = await Patient.create(patientData) as IPatient;
         console.log('Patient created successfully:', patient);
         res.status(201).json(patient);
     } catch (error: any) {
