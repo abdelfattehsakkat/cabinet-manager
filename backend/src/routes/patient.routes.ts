@@ -1,6 +1,7 @@
 import express, { Router } from 'express';
 import {
     getPatients,
+    getPatientsPage,
     getPatient,
     createPatient,
     updatePatient,
@@ -11,17 +12,17 @@ import { upload } from '../utils/fileUpload';
 
 const router: Router = express.Router();
 
-// Routes without authentication temporarily
-router.route('/')
-    .get(getPatients)
-    .post(createPatient);
-
-router.route('/:id')
-    .get(getPatient)
-    .put(updatePatient)
-    .delete(deletePatient);
-
-// File upload route without auth
+// Specific routes first (before dynamic routes)
+router.get('/search', getPatientsPage);
 router.post('/:id/documents', upload.single('document'), addDocument);
+
+// Base CRUD routes
+router.get('/', getPatients);
+router.post('/', createPatient);
+
+// Dynamic ID routes (must be last)
+router.get('/:id', getPatient);
+router.put('/:id', updatePatient);
+router.delete('/:id', deletePatient);
 
 export default router;

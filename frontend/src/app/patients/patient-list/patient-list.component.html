@@ -9,11 +9,20 @@
 
   <mat-form-field class="filter">
     <mat-label>Rechercher</mat-label>
-    <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Ali Ettounsi" #input>
+    <input matInput 
+           (keyup)="applyFilter($event)" 
+           placeholder="N° patient, nom, prénom ou téléphone..." 
+           #input>
     <mat-icon matSuffix>search</mat-icon>
   </mat-form-field>
 
-  <div class="mat-elevation-z8 table-container">
+  <!-- Indicateur de chargement -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="30"></mat-spinner>
+    <span>Recherche en cours...</span>
+  </div>
+
+  <div class="mat-elevation-z8 table-container" *ngIf="!isLoading">
     <table mat-table [dataSource]="dataSource" matSort>
       <ng-container matColumnDef="patientNumber">
         <th mat-header-cell *matHeaderCellDef mat-sort-header> N° Fiche </th>
@@ -66,11 +75,25 @@
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 
       <tr class="mat-row" *matNoDataRow>
-        <td class="mat-cell" colspan="6">Aucun patient ne correspond à la recherche "{{input.value}}"</td>
+        <td class="mat-cell" colspan="7">
+          <div class="no-data-message">
+            <mat-icon>search_off</mat-icon>
+            <span *ngIf="searchTerm">Aucun patient ne correspond à la recherche "{{searchTerm}}"</span>
+            <span *ngIf="!searchTerm">Aucun patient trouvé</span>
+          </div>
+        </td>
       </tr>
     </table>
 
-    <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page"></mat-paginator>
+    <mat-paginator 
+      [length]="totalCount"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[5, 10, 25, 50]"
+      [pageIndex]="currentPage - 1"
+      (page)="onPageChange($event)"
+      [showFirstLastButtons]="true"
+      aria-label="Select page">
+    </mat-paginator>
   </div>
 </div>
 

@@ -18,6 +18,32 @@
     margin-bottom: 20px;
   }
 
+  .loading-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    gap: 15px;
+    
+    span {
+      color: #666;
+      font-size: 14px;
+    }
+  }
+
+  .no-data-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    gap: 10px;
+    color: #666;
+    
+    mat-icon {
+      color: #999;
+    }
+  }
+
   .table-container {
     overflow-x: auto;
 

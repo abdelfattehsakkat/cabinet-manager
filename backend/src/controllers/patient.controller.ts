@@ -34,6 +34,87 @@ export const getPatients = async (req: Request, res: Response): Promise<void> =>
     }
 };
 
+// Get patients with pagination and search
+export const getPatientsPage = async (req: Request, res: Response): Promise<void> => {
+    try {
+        console.log('[GET] /api/patients/paginated - Fetching patients with pagination');
+        
+        // Extract query parameters
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const search = req.query.search as string || '';
+        
+        console.log(`Pagination params: page=${page}, limit=${limit}, search="${search}"`);
+        
+        // Build search query
+        let searchQuery: any = {};
+        
+        if (search && search.trim()) {
+            const searchTerm = search.trim();
+            
+            // Check if search term is a number (for patient number or phone)
+            const isNumber = !isNaN(Number(searchTerm));
+            
+            const searchConditions: any[] = [
+                // Search in firstName and lastName (case insensitive)
+                { firstName: { $regex: searchTerm, $options: 'i' } },
+                { lastName: { $regex: searchTerm, $options: 'i' } },
+                // Search in phone number (partial match)
+                { phoneNumber: { $regex: searchTerm, $options: 'i' } }
+            ];
+            
+            // If it's a number, also search in patientNumber
+            if (isNumber) {
+                searchConditions.push({ patientNumber: Number(searchTerm) });
+                // Also search partial match in patientNumber by converting to string
+                searchConditions.push({ 
+                    $expr: { 
+                        $regexMatch: { 
+                            input: { $toString: "$patientNumber" }, 
+                            regex: searchTerm, 
+                            options: "i" 
+                        } 
+                    } 
+                });
+            }
+            
+            searchQuery = { $or: searchConditions };
+        }
+        
+        console.log('Search query:', JSON.stringify(searchQuery, null, 2));
+        
+        // Calculate skip value for pagination
+        const skip = (page - 1) * limit;
+        
+        // Execute query with pagination
+        const patients = await Patient.find(searchQuery)
+            .sort({ _id: -1 }) // Sort by newest first (latest created)
+            .skip(skip)
+            .limit(limit) as IPatient[];
+        
+        // Get total count for pagination info
+        const totalCount = await Patient.countDocuments(searchQuery);
+        const totalPages = Math.ceil(totalCount / limit);
+        
+        console.log(`Found ${patients.length} patients (page ${page}/${totalPages}, total: ${totalCount})`);
+        
+        res.json({
+            patients,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalCount,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+                limit
+            }
+        });
+    } catch (error: any) {
+        console.error('[GET] /api/patients/paginated - Error:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // Get single patient
 export const getPatient = async (req: Request, res: Response): Promise<void> => {
     try {

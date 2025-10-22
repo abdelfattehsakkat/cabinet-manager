@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, tap, switchMap } from 'rxjs';
 
 export interface Patient {
@@ -23,6 +23,30 @@ export interface Patient {
   updatedAt: Date;
 }
 
+export interface PaginatedResponse {
+  patients: Patient[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalCount: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+    limit: number;
+  };
+}
+
+export interface PaginatedResponse {
+  patients: Patient[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalCount: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+    limit: number;
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -38,6 +62,22 @@ export class PatientService {
     );
   }
 
+  // Get patients with pagination and search
+  searchPatients(page: number = 1, limit: number = 10, search: string = ''): Observable<PaginatedResponse> {
+    console.log(`Searching patients: page=${page}, limit=${limit}, search="${search}"`);
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+    
+    if (search.trim()) {
+      params = params.set('search', search.trim());
+    }
+    
+    return this.http.get<PaginatedResponse>(`${this.apiUrl}/search`, { params }).pipe(
+      tap(response => console.log('Search results received:', response))
+    );
+  }
+
   getPatient(id: string): Observable<Patient> {
     console.log(`Fetching patient with ID: ${id}`);
     return this.http.get<Patient>(`${this.apiUrl}/${id}`).pipe(
@@ -48,21 +88,6 @@ export class PatientService {
   // Create a new patient
   createPatient(patient: Patient): Observable<Patient> {
     return this.http.post<Patient>(`${this.apiUrl}`, patient);
-  }
-
-  generateNextPatientNumber(): Observable<number> {
-    // Pour l'instant, on simule la génération
-    // Plus tard, on remplacera par un appel API
-    return new Observable(observer => {
-      // Simuler un appel async
-      setTimeout(() => {
-        // Pour le moment, on génère un numéro aléatoire
-        // En production, ce sera récupéré du backend
-        const nextNumber = Math.floor(Math.random() * 1000) + 1;
-        observer.next(nextNumber);
-        observer.complete();
-      }, 100);
-    });
   }
 
   updatePatient(id: string, patient: Partial<Patient>): Observable<Patient> {
