@@ -29,35 +29,25 @@
           </mat-form-field>
 
           <mat-form-field>
-            <mat-label>Genre</mat-label>
-            <select matNativeControl formControlName="gender" required>
-              <option value="male">Homme</option>
-              <option value="female">Femme</option>
-              <option value="other">Autre</option>
-            </select>
-            <mat-error>{{getErrorMessage('gender')}}</mat-error>
-          </mat-form-field>
-        </div>
-
-        <div class="form-row">
-          <mat-form-field>
-            <mat-label>Téléphone</mat-label>
-            <input matInput formControlName="phoneNumber" required>
-            <mat-error>{{getErrorMessage('phoneNumber')}}</mat-error>
-          </mat-form-field>
-
-          <mat-form-field>
             <mat-label>Email</mat-label>
             <input matInput formControlName="email" type="email">
             <mat-error>{{getErrorMessage('email')}}</mat-error>
           </mat-form-field>
         </div>
 
-        <mat-form-field class="full-width">
-          <mat-label>Adresse</mat-label>
-          <input matInput formControlName="address" required>
-          <mat-error>{{getErrorMessage('address')}}</mat-error>
-        </mat-form-field>
+        <div class="form-row">
+          <mat-form-field>
+            <mat-label>Téléphone (optionnel)</mat-label>
+            <input matInput formControlName="phoneNumber">
+            <mat-error>{{getErrorMessage('phoneNumber')}}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Adresse (optionnelle)</mat-label>
+            <input matInput formControlName="address">
+            <mat-error>{{getErrorMessage('address')}}</mat-error>
+          </mat-form-field>
+        </div>
 
         <div formGroupName="medicalHistory">
           <h3>Antécédents médicaux</h3>

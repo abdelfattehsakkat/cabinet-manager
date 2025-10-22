@@ -12,10 +12,9 @@ export interface IPatient extends Document {
     firstName: string;
     lastName: string;
     dateOfBirth: Date;
-    gender: 'male' | 'female' | 'other';
     email?: string;
-    phoneNumber: string;
-    address?: string;
+    phoneNumber?: string;  // Optionnel
+    address?: string;      // Optionnel
     medicalHistory?: {
         conditions: string[];
         allergies: string[];
@@ -30,14 +29,9 @@ const patientSchema = new Schema({
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     dateOfBirth: { type: Date, required: true },
-    gender: {
-        type: String,
-        enum: ['male', 'female', 'other'],
-        required: true
-    },
     email: { type: String },
-    phoneNumber: { type: String, required: true },
-    address: { type: String },
+    phoneNumber: { type: String },  // Plus obligatoire
+    address: { type: String },      // Plus obligatoire
     medicalHistory: {
         conditions: [String],
         allergies: [String],

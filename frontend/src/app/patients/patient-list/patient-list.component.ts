@@ -39,7 +39,7 @@ export class PatientListComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
   
-  displayedColumns: string[] = ['patientNumber', 'lastName', 'firstName', 'dateOfBirth', 'phone', 'email', 'actions'];
+  displayedColumns: string[] = ['patientNumber', 'lastName', 'firstName', 'dateOfBirth', 'phone', 'actions'];
   dataSource: MatTableDataSource<Patient>;
   selectedPatient: Patient | null = null;
   private patientDetailsDialogRef: MatDialogRef<any> | null = null;

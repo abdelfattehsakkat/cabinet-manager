@@ -8,10 +8,9 @@ export interface Patient {
   firstName: string;
   lastName: string;
   dateOfBirth: Date;
-  gender: string;
   email: string;
-  phoneNumber: string;
-  address: string;
+  phoneNumber?: string;  // Optionnel
+  address?: string;      // Optionnel
   medicalHistory?: {
     conditions: string[];
     allergies: string[];
@@ -21,18 +20,6 @@ export interface Patient {
   documents: any[];
   createdAt: Date;
   updatedAt: Date;
-}
-
-export interface PaginatedResponse {
-  patients: Patient[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
-    limit: number;
-  };
 }
 
 export interface PaginatedResponse {

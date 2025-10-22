@@ -42,10 +42,9 @@ export class PatientFormComponent implements OnInit {
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
       dateOfBirth: ['', [Validators.required]],
-      gender: ['', [Validators.required]],
-  phoneNumber: ['', [Validators.required, Validators.pattern(/^[0-9]*$/)]],
+      phoneNumber: ['', [Validators.pattern(/^[0-9]*$/)]],  // Suppression de required
       email: ['', [Validators.email]],
-      address: ['', [Validators.required]],
+      address: [''],  // Suppression de required
       medicalHistory: this.fb.group({
         conditions: [[]],
         allergies: [[]],
