@@ -6,6 +6,7 @@ import connectDB from './config/database';
 import authRoutes from './routes/auth.routes';
 import patientRoutes from './routes/patient.routes';
 import appointmentRoutes from './routes/appointment.routes';
+import treatmentRoutes from './routes/treatment.routes';
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/appointments', appointmentRoutes);
+app.use('/api/treatments', treatmentRoutes);
 
 // Basic route for testing
 app.get('/', (_req: Request, res: Response) => {

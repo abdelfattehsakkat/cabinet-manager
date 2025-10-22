@@ -1,0 +1,63 @@
+.treatment-form-dialog {
+  min-width: 500px;
+  max-width: 600px;
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+  }
+}
+
+.patient-info-card {
+  margin-bottom: 20px;
+  background-color: #f8f9fa;
+
+  .patient-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: #333;
+
+    mat-icon {
+      color: #1976d2;
+    }
+  }
+}
+
+.treatment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .full-width {
+    width: 100%;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 60px;
+  }
+}
+
+.mat-dialog-actions {
+  padding: 16px 24px;
+  gap: 8px;
+
+  button {
+    min-width: 100px;
+
+    mat-spinner {
+      margin-right: 8px;
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .treatment-form-dialog {
+    min-width: 90vw;
+    max-width: 95vw;
+  }
+}

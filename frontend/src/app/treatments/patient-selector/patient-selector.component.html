@@ -1,0 +1,96 @@
+<div class="patient-selector-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon>person_search</mat-icon>
+    Sélectionner un Patient
+  </h2>
+
+  <mat-dialog-content>
+    <!-- Search field -->
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Rechercher un patient</mat-label>
+      <input 
+        matInput 
+        [value]="searchTerm"
+        (input)="onSearchChange($any($event.target).value || '')"
+        placeholder="Nom, prénom, numéro, téléphone...">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <!-- Results summary -->
+    <div class="results-summary" *ngIf="!isLoading">
+      {{ totalCount }} patient(s) trouvé(s)
+    </div>
+
+    <!-- Loading spinner -->
+    <div class="loading-container" *ngIf="isLoading">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <!-- Patients table -->
+    <div class="patients-container" *ngIf="!isLoading">
+      <mat-table [dataSource]="patients" class="patients-table">
+        
+        <!-- Patient Number Column -->
+        <ng-container matColumnDef="patientNumber">
+          <mat-header-cell *matHeaderCellDef>N°</mat-header-cell>
+          <mat-cell *matCellDef="let patient">
+            <strong>{{ patient.patientNumber }}</strong>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Name Column -->
+        <ng-container matColumnDef="name">
+          <mat-header-cell *matHeaderCellDef>Nom & Prénom</mat-header-cell>
+          <mat-cell *matCellDef="let patient">
+            <div class="patient-name">
+              {{ getPatientFullName(patient) }}
+            </div>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Phone Column -->
+        <ng-container matColumnDef="phoneNumber">
+          <mat-header-cell *matHeaderCellDef>Téléphone</mat-header-cell>
+          <mat-cell *matCellDef="let patient">
+            {{ patient.phoneNumber || '-' }}
+          </mat-cell>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
+          <mat-cell *matCellDef="let patient">
+            <button mat-raised-button 
+                    color="primary" 
+                    (click)="selectPatient(patient)">
+              Sélectionner
+            </button>
+          </mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: displayedColumns;" 
+                 class="patient-row"
+                 (click)="selectPatient(row)"></mat-row>
+      </mat-table>
+
+      <!-- No results -->
+      <div class="no-results" *ngIf="patients.length === 0">
+        <mat-icon>person_off</mat-icon>
+        <p>Aucun patient trouvé</p>
+        <small *ngIf="searchTerm">Essayez de modifier votre recherche</small>
+      </div>
+
+      <!-- Load more button -->
+      <div class="load-more" *ngIf="currentPage * pageSize < totalCount">
+        <button mat-button color="primary" (click)="loadMore()">
+          Charger plus de patients
+        </button>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="cancel()">Annuler</button>
+  </mat-dialog-actions>
+</div>

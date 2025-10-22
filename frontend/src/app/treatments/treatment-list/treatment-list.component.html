@@ -1,0 +1,116 @@
+<div class="treatment-list-container">
+  <!-- Header -->
+  <mat-toolbar color="primary" class="page-header">
+    <mat-icon>medical_services</mat-icon>
+    <span>Gestion des Soins par Patient</span>
+  </mat-toolbar>
+
+  <!-- Search and filters -->
+  <mat-card class="search-card">
+    <mat-card-content>
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Rechercher un patient (nom, prénom, numéro...)</mat-label>
+        <input 
+          matInput 
+          [value]="searchTerm"
+          (input)="onSearchChange($any($event.target).value || '')"
+          placeholder="Rechercher...">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Results summary -->
+  <div class="results-summary" *ngIf="!isLoading">
+    <span>{{ totalCount }} patient(s) trouvé(s)</span>
+    <span *ngIf="searchTerm"> pour "{{ searchTerm }}"</span>
+  </div>
+
+  <!-- Loading spinner -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des patients...</p>
+  </div>
+
+  <!-- Patients table -->
+  <mat-card *ngIf="!isLoading" class="table-card">
+    <mat-table [dataSource]="patients" class="patients-table">
+      
+      <!-- Patient Number Column -->
+      <ng-container matColumnDef="patientNumber">
+        <mat-header-cell *matHeaderCellDef>N° Fiche</mat-header-cell>
+        <mat-cell *matCellDef="let patient">
+          <strong>{{ patient.patientNumber }}</strong>
+        </mat-cell>
+      </ng-container>
+
+      <!-- First Name Column -->
+      <ng-container matColumnDef="firstName">
+        <mat-header-cell *matHeaderCellDef>Prénom</mat-header-cell>
+        <mat-cell *matCellDef="let patient">
+          {{ patient.firstName }}
+        </mat-cell>
+      </ng-container>
+
+      <!-- Last Name Column -->
+      <ng-container matColumnDef="lastName">
+        <mat-header-cell *matHeaderCellDef>Nom</mat-header-cell>
+        <mat-cell *matCellDef="let patient">
+          {{ patient.lastName }}
+        </mat-cell>
+      </ng-container>
+
+      <!-- Phone Number Column -->
+      <ng-container matColumnDef="phoneNumber">
+        <mat-header-cell *matHeaderCellDef>Téléphone</mat-header-cell>
+        <mat-cell *matCellDef="let patient">
+          {{ patient.phoneNumber || '-' }}
+        </mat-cell>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
+        <mat-cell *matCellDef="let patient">
+          <div class="action-buttons">
+            <button mat-icon-button 
+                    class="add-button"
+                    (click)="addTreatmentForPatient(patient)"
+                    matTooltip="Ajouter un soin">
+              <mat-icon>add_circle</mat-icon>
+            </button>
+            
+            <button mat-icon-button 
+                    class="edit-button"
+                    (click)="manageTreatments(patient)"
+                    matTooltip="Gérer les soins">
+              <mat-icon>medical_services</mat-icon>
+            </button>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+    </mat-table>
+
+    <!-- No results message -->
+    <div class="no-results" *ngIf="patients.length === 0 && !isLoading">
+      <mat-icon>person_off</mat-icon>
+      <h3>Aucun patient trouvé</h3>
+      <p *ngIf="searchTerm">Essayez de modifier votre recherche</p>
+      <p *ngIf="!searchTerm">Aucun patient enregistré dans le système</p>
+    </div>
+
+    <!-- Pagination -->
+    <mat-paginator 
+      *ngIf="patients.length > 0"
+      [length]="totalCount"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[5, 10, 20, 50]"
+      [pageIndex]="currentPage - 1"
+      (page)="onPageChange($event)"
+      showFirstLastButtons="true">
+    </mat-paginator>
+  </mat-card>
+</div>

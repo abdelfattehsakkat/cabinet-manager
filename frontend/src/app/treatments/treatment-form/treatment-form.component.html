@@ -1,0 +1,96 @@
+<div class="treatment-form-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon>medical_services</mat-icon>
+    {{ getFormTitle() }}
+  </h2>
+
+  <mat-dialog-content>
+    <!-- Patient info -->
+    <mat-card class="patient-info-card">
+      <mat-card-content>
+        <div class="patient-info">
+          <mat-icon>person</mat-icon>
+          <span>{{ getPatientDisplayName() }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Treatment form -->
+    <form [formGroup]="treatmentForm" (ngSubmit)="onSubmit()" class="treatment-form">
+      
+      <!-- Treatment Date -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Date du soin</mat-label>
+        <input matInput 
+               [matDatepicker]="picker" 
+               formControlName="treatmentDate"
+               required>
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+        <mat-error *ngIf="treatmentForm.get('treatmentDate')?.hasError('required')">
+          La date est obligatoire
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Description -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Description du soin</mat-label>
+        <textarea matInput 
+                  formControlName="description"
+                  rows="3"
+                  placeholder="Décrivez le soin effectué..."
+                  required></textarea>
+        <mat-error *ngIf="treatmentForm.get('description')?.hasError('required')">
+          La description est obligatoire
+        </mat-error>
+        <mat-error *ngIf="treatmentForm.get('description')?.hasError('minlength')">
+          La description doit contenir au moins 3 caractères
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Notes -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Notes additionnelles (optionnel)</mat-label>
+        <textarea matInput 
+                  formControlName="notes"
+                  rows="2"
+                  placeholder="Notes, observations, instructions..."></textarea>
+      </mat-form-field>
+
+      <!-- Cost -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Coût (TND)</mat-label>
+        <input matInput 
+               type="number"
+               formControlName="cost"
+               placeholder="0.00"
+               min="0"
+               step="0.01">
+        <span matSuffix>TND</span>
+        <mat-error *ngIf="treatmentForm.get('cost')?.hasError('min')">
+          Le coût ne peut pas être négatif
+        </mat-error>
+      </mat-form-field>
+
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button 
+            type="button" 
+            (click)="cancel()"
+            [disabled]="isLoading">
+      Annuler
+    </button>
+    
+    <button mat-raised-button 
+            color="primary"
+            type="button"
+            (click)="onSubmit()"
+            [disabled]="isLoading || treatmentForm.invalid">
+      <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
+      <span *ngIf="!isLoading">{{ isEdit ? 'Modifier' : 'Ajouter' }}</span>
+      <span *ngIf="isLoading">{{ isEdit ? 'Modification...' : 'Ajout...' }}</span>
+    </button>
+  </mat-dialog-actions>
+</div>
