@@ -1,0 +1,47 @@
+.treatment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 400px;
+  padding: 20px 0;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.half-width {
+  flex: 1;
+}
+
+.patient-info {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+  font-weight: normal;
+}
+
+mat-dialog-title h2 {
+  margin: 0 0 8px 0;
+  color: #1976d2;
+}
+
+mat-dialog-actions {
+  gap: 8px;
+  padding: 16px 0 0 0;
+}
+
+mat-form-field {
+  margin-bottom: 8px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 60px;
+}

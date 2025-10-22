@@ -26,11 +26,13 @@ import { MatListModule } from '@angular/material/list';
 
 // Components - Now standalone components
 import { TreatmentListComponent } from './treatment-list/treatment-list.component';
+import { PatientTreatmentsComponent } from './patient-treatments/patient-treatments.component';
 // import { TreatmentFormComponent } from './treatment-form/treatment-form.component';
 // import { TreatmentDetailsComponent } from './treatment-details/treatment-details.component';
 
 const routes = [
   { path: '', component: TreatmentListComponent },
+  { path: 'patient/:id', component: PatientTreatmentsComponent }
   // { path: 'patient/:patientId', component: TreatmentDetailsComponent }
 ];
 

@@ -8,10 +8,10 @@ export interface Treatment {
   patientNumber: number;
   patientName: string;
   treatmentDate: Date;
+  dent: number; // Numéro de la dent
   description: string;
-  notes?: string;
-  cost?: number;
-  createdBy?: string;
+  honoraire: number; // Montant des honoraires
+  recu: number; // Montant reçu
   createdAt: Date;
   updatedAt: Date;
 }

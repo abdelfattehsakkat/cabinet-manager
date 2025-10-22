@@ -75,14 +75,21 @@
           <div class="action-buttons">
             <button mat-icon-button 
                     class="add-button"
-                    (click)="addTreatmentForPatient(patient)"
+                    (click)="onAddTreatment(patient)"
                     matTooltip="Ajouter un soin">
               <mat-icon>add_circle</mat-icon>
             </button>
             
             <button mat-icon-button 
+                    class="view-button"
+                    (click)="onViewTreatments(patient)"
+                    matTooltip="Afficher les soins">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            
+            <button mat-icon-button 
                     class="edit-button"
-                    (click)="manageTreatments(patient)"
+                    (click)="onEditTreatments(patient)"
                     matTooltip="Gérer les soins">
               <mat-icon>medical_services</mat-icon>
             </button>

@@ -1,0 +1,90 @@
+<div mat-dialog-title>
+  <h2>Ajouter un soin pour {{ patient.firstName }} {{ patient.lastName }}</h2>
+  <p class="patient-info">Fiche N° {{ patient.patientNumber }}</p>
+</div>
+
+<div mat-dialog-content>
+  <form [formGroup]="treatmentForm" class="treatment-form">
+    
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Date du soin</mat-label>
+      <input matInput 
+             type="date" 
+             formControlName="treatmentDate"
+             [value]="treatmentForm.get('treatmentDate')?.value | date:'yyyy-MM-dd'">
+      <mat-error *ngIf="treatmentForm.get('treatmentDate')?.hasError('required')">
+        La date est obligatoire
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Numéro de dent</mat-label>
+      <input matInput 
+             type="number" 
+             formControlName="dent"
+             placeholder="Ex: 12, 23, 42..."
+             min="1" 
+             max="48">
+      <mat-error *ngIf="treatmentForm.get('dent')?.hasError('required')">
+        Le numéro de dent est obligatoire
+      </mat-error>
+      <mat-error *ngIf="treatmentForm.get('dent')?.hasError('min') || treatmentForm.get('dent')?.hasError('max')">
+        Le numéro doit être entre 1 et 48
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Description du soin</mat-label>
+      <textarea matInput 
+                formControlName="description"
+                placeholder="Décrivez le soin effectué..."
+                rows="3"></textarea>
+      <mat-error *ngIf="treatmentForm.get('description')?.hasError('required')">
+        La description est obligatoire
+      </mat-error>
+    </mat-form-field>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="half-width">
+        <mat-label>Honoraires (€)</mat-label>
+        <input matInput 
+               type="number" 
+               formControlName="honoraire"
+               step="0.01"
+               min="0">
+        <mat-error *ngIf="treatmentForm.get('honoraire')?.hasError('required')">
+          Les honoraires sont obligatoires
+        </mat-error>
+        <mat-error *ngIf="treatmentForm.get('honoraire')?.hasError('min')">
+          Le montant doit être positif
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="half-width">
+        <mat-label>Reçu (€)</mat-label>
+        <input matInput 
+               type="number" 
+               formControlName="recu"
+               step="0.01"
+               min="0">
+        <mat-error *ngIf="treatmentForm.get('recu')?.hasError('required')">
+          Le montant reçu est obligatoire
+        </mat-error>
+        <mat-error *ngIf="treatmentForm.get('recu')?.hasError('min')">
+          Le montant doit être positif
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+  </form>
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Annuler</button>
+  <button mat-raised-button 
+          color="primary" 
+          (click)="onSubmit()"
+          [disabled]="!treatmentForm.valid">
+    Ajouter le soin
+  </button>
+</div>

@@ -21,8 +21,10 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
 
+// Services and Components
 import { TreatmentService, Treatment, TreatmentPaginatedResponse } from '../services/treatment.service';
 import { PatientService, Patient, PaginatedResponse } from '../../patients/services/patient.service';
+import { TreatmentDialogComponent } from '../treatment-dialog/treatment-dialog.component';
 // import { TreatmentFormComponent } from '../treatment-form/treatment-form.component';
 
 @Component({
@@ -136,6 +138,29 @@ export class TreatmentListComponent implements OnInit {
 
   formatDate(date: Date): string {
     return new Date(date).toLocaleDateString('fr-FR');
+  }
+
+  onAddTreatment(patient: Patient): void {
+    const dialogRef = this.dialog.open(TreatmentDialogComponent, {
+      width: '500px',
+      data: { patient }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Optionnellement recharger la liste ou afficher un message
+        this.snackBar.open('Soin ajouté avec succès', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  onViewTreatments(patient: Patient): void {
+    this.router.navigate(['/treatments/patient', patient._id]);
+  }
+
+  onEditTreatments(patient: Patient): void {
+    // Redirection vers le composant patient avec message "en cours de construction"
+    this.snackBar.open('Fonctionnalité en cours de construction', 'Fermer', { duration: 3000 });
   }
 
   formatCurrency(amount: number | undefined): string {

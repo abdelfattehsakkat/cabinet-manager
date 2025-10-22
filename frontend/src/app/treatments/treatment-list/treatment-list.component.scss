@@ -96,6 +96,15 @@
               }
             }
             
+            &.view-button {
+              color: #2196F3; // Bleu pour afficher
+              
+              &:hover {
+                background-color: rgba(33, 150, 243, 0.1);
+                color: #1976D2;
+              }
+            }
+            
             &.edit-button {
               color: #FF9800; // Orange pour gérer/éditer
               

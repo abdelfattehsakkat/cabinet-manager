@@ -1,0 +1,170 @@
+<div class="patient-treatments-container">
+  <!-- Loading spinner -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Chargement des données...</p>
+  </div>
+
+  <!-- Patient header -->
+  <mat-card *ngIf="patient && !isLoading" class="patient-header-card">
+    <mat-card-content class="patient-header-content">
+      <div class="left-section">
+        <button mat-stroked-button (click)="goBack()" class="back-button">
+          <mat-icon>arrow_back</mat-icon>
+          Retour à la liste
+        </button>
+      </div>
+      
+      <div class="center-section">
+        <div class="patient-avatar">
+          <mat-icon>person</mat-icon>
+        </div>
+        <div class="patient-title">
+          <h2 [innerHTML]="getPatientDisplayNameHtml()"></h2>
+        </div>
+      </div>
+      
+      <div class="right-section">
+        <div class="patient-info">
+          <div class="info-item">
+            <mat-icon>badge</mat-icon>
+            <span>Fiche N° {{ patient.patientNumber }}</span>
+          </div>
+          <div class="info-item" *ngIf="patient.dateOfBirth">
+            <mat-icon>cake</mat-icon>
+            <span>{{ formatDate(patient.dateOfBirth) }}</span>
+          </div>
+          <div class="info-item" *ngIf="patient.phoneNumber">
+            <mat-icon>phone</mat-icon>
+            <span>{{ patient.phoneNumber }}</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Treatments summary -->
+  <mat-card *ngIf="!isLoading && treatments.length > 0" class="summary-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>analytics</mat-icon>
+        Résumé des soins
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="summary-label">Total des soins</div>
+          <div class="summary-value">{{ treatments.length }}</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Honoraires totaux</div>
+          <div class="summary-value total-fees">{{ formatCurrency(totalHonoraires) }}</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Total reçu</div>
+          <div class="summary-value total-received">{{ formatCurrency(totalRecu) }}</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Balance</div>
+          <div class="summary-value" [ngClass]="{
+            'balance-positive': totalBalance > 0,
+            'balance-zero': totalBalance === 0,
+            'balance-negative': totalBalance < 0
+          }">
+            {{ formatCurrency(totalBalance) }}
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Treatments table -->
+  <mat-card *ngIf="!isLoading" class="treatments-table-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>medical_services</mat-icon>
+        Historique des soins
+      </mat-card-title>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div *ngIf="treatments.length === 0" class="no-treatments">
+        <mat-icon>info</mat-icon>
+        <p>Aucun soin enregistré pour ce patient</p>
+      </div>
+
+      <div *ngIf="treatments.length > 0" class="table-container">
+        <table mat-table [dataSource]="treatments" class="treatments-table">
+          
+          <!-- Date Column -->
+          <ng-container matColumnDef="treatmentDate">
+            <th mat-header-cell *matHeaderCellDef>Date</th>
+            <td mat-cell *matCellDef="let treatment">
+              <span class="date-cell">{{ formatDate(treatment.treatmentDate) }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Dent Column -->
+          <ng-container matColumnDef="dent">
+            <th mat-header-cell *matHeaderCellDef>Dent</th>
+            <td mat-cell *matCellDef="let treatment">
+              <mat-chip-set>
+                <mat-chip color="primary" selected>{{ treatment.dent }}</mat-chip>
+              </mat-chip-set>
+            </td>
+          </ng-container>
+
+          <!-- Description Column -->
+          <ng-container matColumnDef="description">
+            <th mat-header-cell *matHeaderCellDef>Description</th>
+            <td mat-cell *matCellDef="let treatment">
+              <div class="description-cell">
+                <span class="description-text">{{ treatment.description }}</span>
+                <mat-chip 
+                  [color]="getPaymentStatusColor(treatment)" 
+                  selected 
+                  class="status-chip">
+                  {{ getPaymentStatus(treatment) }}
+                </mat-chip>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Honoraire Column -->
+          <ng-container matColumnDef="honoraire">
+            <th mat-header-cell *matHeaderCellDef>Honoraires</th>
+            <td mat-cell *matCellDef="let treatment">
+              <span class="amount-cell fees">{{ formatCurrency(treatment.honoraire) }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Reçu Column -->
+          <ng-container matColumnDef="recu">
+            <th mat-header-cell *matHeaderCellDef>Reçu</th>
+            <td mat-cell *matCellDef="let treatment">
+              <span class="amount-cell received">{{ formatCurrency(treatment.recu) }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Balance Column -->
+          <ng-container matColumnDef="balance">
+            <th mat-header-cell *matHeaderCellDef>Balance</th>
+            <td mat-cell *matCellDef="let treatment">
+              <span class="amount-cell balance" [ngClass]="{
+                'balance-positive': getBalance(treatment) > 0,
+                'balance-zero': getBalance(treatment) === 0,
+                'balance-negative': getBalance(treatment) < 0
+              }">
+                {{ formatCurrency(getBalance(treatment)) }}
+              </span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="treatment-row"></tr>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

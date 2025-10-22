@@ -1,0 +1,403 @@
+.patient-treatments-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  
+  p {
+    margin-top: 16px;
+    color: #666;
+  }
+}
+
+// Patient Header Card
+.patient-header-card {
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  color: white;
+  position: relative;
+  overflow: hidden;
+  
+  // Ajouter un effet de profondeur
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  
+  .mat-mdc-card-header {
+    color: white;
+    position: relative;
+    z-index: 1;
+    padding: 24px 24px 16px 24px; // Plus d'espace
+  }
+  
+  .mat-mdc-card-title {
+    font-size: 32px !important; // Plus grand
+    font-weight: 700 !important; // Plus gras
+    margin-bottom: 8px !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3); // Ombre pour plus de profondeur
+    letter-spacing: 0.5px; // Espacement des lettres
+  }
+  
+  .patient-avatar {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px; // Plus grand
+    height: 56px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    
+    mat-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+  }
+  
+  .patient-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; // Plus d'espace
+    margin-top: 12px;
+    
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 15px; // Légèrement plus grand
+      font-weight: 500; // Un peu plus gras
+      opacity: 0.95;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+  
+  .mat-mdc-card-actions {
+    padding: 20px 24px 24px 24px;
+    position: relative;
+    z-index: 1;
+    
+    button {
+      color: white;
+      border-color: rgba(255, 255, 255, 0.6);
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 25px;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.8);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      
+      mat-icon {
+        margin-right: 6px;
+      }
+    }
+  }
+}
+
+// Summary Card
+.summary-card {
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border: 1px solid rgba(25, 118, 210, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  
+  .mat-mdc-card-header {
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    color: white;
+    margin: -16px -16px 20px -16px;
+    padding: 20px 24px;
+    border-radius: 8px 8px 0 0;
+    
+    .mat-mdc-card-title {
+      font-size: 20px;
+      font-weight: 600;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      
+      mat-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+    }
+  }
+  
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+    padding: 8px;
+    
+    .summary-item {
+      text-align: center;
+      padding: 24px 20px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      border: 2px solid transparent;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #1976d2, #42a5f5);
+      }
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        border-color: rgba(25, 118, 210, 0.2);
+      }
+      
+      .summary-label {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .summary-value {
+        font-size: 28px;
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        
+        &.total-fees {
+          color: #1976d2;
+          background: linear-gradient(135deg, #1976d2, #42a5f5);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        
+        &.total-received {
+          color: #388e3c;
+          background: linear-gradient(135deg, #388e3c, #66bb6a);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        
+        &.balance-positive {
+          color: #f57c00;
+          background: linear-gradient(135deg, #f57c00, #ffb74d);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        
+        &.balance-zero {
+          color: #388e3c;
+          background: linear-gradient(135deg, #388e3c, #66bb6a);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        
+        &.balance-negative {
+          color: #d32f2f;
+          background: linear-gradient(135deg, #d32f2f, #f44336);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+      }
+    }
+  }
+}
+
+// Treatments Table Card
+.treatments-table-card {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(25, 118, 210, 0.1);
+  
+  .mat-mdc-card-header {
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    color: white;
+    margin: -16px -16px 20px -16px;
+    padding: 20px 24px;
+    border-radius: 8px 8px 0 0;
+    
+    .mat-mdc-card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 600;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      
+      mat-icon {
+        font-size: 26px;
+        width: 26px;
+        height: 26px;
+      }
+    }
+  }
+  
+  .no-treatments {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    
+    mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+    }
+  }
+  
+  .table-container {
+    overflow-x: auto;
+    margin-top: 16px;
+  }
+  
+  .treatments-table {
+    width: 100%;
+    
+    .mat-mdc-header-cell {
+      font-weight: 600;
+      color: #1976d2;
+      padding: 12px 16px;
+    }
+    
+    .mat-mdc-cell {
+      padding: 12px; // Réduit de 16px à 12px
+    }
+    
+    .treatment-row {
+      min-height: 65px; // Réduit de 80px à 65px
+      
+      &:hover {
+        background-color: #f5f5f5;
+      }
+    }
+    
+    // Column styling
+    .date-cell {
+      font-weight: 500;
+      color: #333;
+    }
+    
+    .description-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 6px; // Réduit de 8px à 6px
+      padding-bottom: 8px; // Réduit de 12px à 8px
+      
+      .description-text {
+        font-weight: 500;
+        margin-bottom: 2px; // Réduit de 4px à 2px
+      }
+      
+      .status-chip {
+        align-self: flex-start;
+        font-size: 11px;
+        min-height: 18px; // Réduit de 20px à 18px
+        line-height: 18px;
+        margin-bottom: 2px; // Réduit de 4px à 2px
+      }
+    }
+    
+    .amount-cell {
+      font-weight: 600;
+      
+      &.fees {
+        color: #1976d2;
+      }
+      
+      &.received {
+        color: #388e3c;
+      }
+      
+      &.balance {
+        &.balance-positive {
+          color: #f57c00;
+        }
+        
+        &.balance-zero {
+          color: #388e3c;
+        }
+        
+        &.balance-negative {
+          color: #d32f2f;
+        }
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .patient-treatments-container {
+    padding: 10px;
+  }
+  
+  .patient-info {
+    flex-direction: column;
+    gap: 8px !important;
+  }
+  
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    
+    .summary-item {
+      padding: 12px !important;
+      
+      .summary-value {
+        font-size: 18px !important;
+      }
+    }
+  }
+  
+  .treatments-table {
+    font-size: 14px;
+    
+    .description-cell {
+      max-width: 200px;
+      
+      .description-text {
+        word-break: break-word;
+      }
+    }
+  }
+}

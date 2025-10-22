@@ -5,10 +5,10 @@ export interface ITreatment extends Document {
     patientNumber: number;
     patientName: string; // Pour faciliter l'affichage
     treatmentDate: Date;
+    dent: number; // Numéro de la dent (ex: 12, 23, 42)
     description: string;
-    notes?: string;
-    cost?: number;
-    createdBy?: string; // ID du médecin/utilisateur
+    honoraire: number; // Montant des honoraires
+    recu: number; // Montant reçu
     createdAt: Date;
     updatedAt: Date;
 }
@@ -31,21 +31,26 @@ const treatmentSchema = new Schema({
         type: Date, 
         required: true 
     },
+    dent: { 
+        type: Number, 
+        required: true,
+        min: 1,
+        max: 48 // Numérotation dentaire standard
+    },
     description: { 
         type: String, 
         required: true,
         trim: true
     },
-    notes: { 
-        type: String,
-        trim: true
-    },
-    cost: { 
+    honoraire: { 
         type: Number,
+        required: true,
         min: 0
     },
-    createdBy: { 
-        type: String 
+    recu: { 
+        type: Number,
+        required: true,
+        min: 0
     }
 }, {
     timestamps: true
