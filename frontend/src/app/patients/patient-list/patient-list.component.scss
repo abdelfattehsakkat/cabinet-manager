@@ -1,251 +1,503 @@
 .patient-list-container {
   padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
 
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-
-    h1 {
-      margin: 0;
-      color: #2e7d32;
-    }
-  }
-
-  .filter {
-    width: 100%;
-    margin-bottom: 20px;
-  }
-
-  .loading-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
-    gap: 15px;
-    
-    span {
-      color: #666;
-      font-size: 14px;
-    }
-  }
-
-  .no-data-message {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
-    gap: 10px;
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  
+  p {
+    margin-top: 16px;
     color: #666;
+  }
+}
+
+.header-card {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+  
+  .mat-mdc-card-header {
+    background: linear-gradient(135deg, #20c997 0%, #0dcaf0 100%);
+    color: white;
+    padding: 16px 24px;
+    border-radius: 0;
     
-    mat-icon {
-      color: #999;
+    .mat-mdc-card-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      
+      .mat-icon {
+        font-size: 24px;
+      }
     }
   }
-
-  .table-container {
-    overflow-x: auto;
-
-    table {
-      width: 100%;
-
-      th.mat-header-cell {
-        font-weight: bold;
-        color: #1976d2;
-      }
-
-      .mat-column-patientNumber {
-        width: 80px;
-        text-align: center;
+  
+  .mat-mdc-card-content {
+    padding: 20px 24px;
+    
+    .header-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      
+      .search-container {
+        flex: 1;
+        max-width: 400px;
         
-        .mat-cell {
-          font-weight: 600;
-          color: #1976d2;
+        .mat-mdc-form-field {
+          width: 100%;
+          
+          .mat-mdc-text-field-wrapper {
+            border-radius: 8px;
+          }
         }
       }
-
-      .mat-column-actions {
-        width: 120px;
-        text-align: center;
+      
+      .add-patient-btn {
+        background: linear-gradient(135deg, #20c997 0%, #0dcaf0 100%);
+        color: white;
+        font-weight: 600;
+        padding: 14px 28px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(32, 201, 151, 0.25);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: none;
+        text-transform: none;
+        font-size: 14px;
+        letter-spacing: 0.5px;
+        position: relative;
+        overflow: hidden;
         
-        .action-buttons {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          gap: 4px;
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+          transition: left 0.5s;
+        }
+        
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(32, 201, 151, 0.35);
           
-          .mat-mdc-icon-button {
-            width: 32px;
-            height: 32px;
-            min-width: 32px;
-            padding: 0;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            position: relative;
+          &::before {
+            left: 100%;
+          }
+        }
+        
+        &:active {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(32, 201, 151, 0.3);
+        }
+        
+        .mat-icon {
+          margin-right: 8px;
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 50%;
+          padding: 4px;
+          transition: all 0.2s ease;
+        }
+        
+        &:hover .mat-icon {
+          background: rgba(255, 255, 255, 0.3);
+          transform: rotate(90deg);
+        }
+      }
+    }
+  }
+}
+
+.patients-table-card {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+  
+  .mat-mdc-card-header {
+    background: linear-gradient(135deg, #20c997 0%, #0dcaf0 100%);
+    color: white;
+    padding: 16px 24px;
+    border-radius: 0;
+    
+    .mat-mdc-card-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      
+      .mat-icon {
+        font-size: 20px;
+      }
+    }
+  }
+  
+  .mat-mdc-card-content {
+    padding: 0;
+    
+    .mat-mdc-table {
+      width: 100%;
+      background: white;
+      
+      .mat-mdc-header-row {
+        background-color: #f8f9fa;
+        
+        .mat-mdc-header-cell {
+          font-weight: 600;
+          color: #495057;
+          border-bottom: 2px solid #dee2e6;
+          padding: 16px 12px;
+        }
+      }
+      
+      .mat-mdc-row {
+        transition: background-color 0.2s ease;
+        
+        &:hover {
+          background-color: #f8f9fa;
+        }
+        
+        .mat-mdc-cell {
+          padding: 12px;
+          border-bottom: 1px solid #dee2e6;
+          
+          &.mat-column-patientNumber {
+            font-weight: 600;
+            color: #20c997;
+          }
+          
+          &.mat-column-lastName,
+          &.mat-column-firstName {
+            font-weight: 500;
+          }
+          
+          &.mat-column-actions {
+            width: 120px;
+            text-align: center;
             
-            .mat-icon {
-              font-size: 18px;
-              width: 18px;
-              height: 18px;
+            .action-buttons {
               display: flex;
-              align-items: center;
               justify-content: center;
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);
-            }
-            
-            &.view-button {
-              color: #1976D2; // Bleu foncé
+              align-items: center;
+              gap: 4px;
               
-              &:hover {
-                background-color: rgba(25, 118, 210, 0.1);
-                color: #0D47A1;
-              }
-            }
-            
-            &.edit-button {
-              color: #2196F3; // Bleu moyen
-              
-              &:hover {
-                background-color: rgba(33, 150, 243, 0.1);
-                color: #1976D2;
-              }
-            }
-            
-            &.delete-button {
-              color: #424242; // Gris foncé
-              
-              &:hover {
-                background-color: rgba(66, 66, 66, 0.1);
-                color: #212121;
+              .mat-mdc-icon-button {
+                width: 32px;
+                height: 32px;
+                min-width: 32px;
+                padding: 0;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                position: relative;
+                
+                .mat-icon {
+                  font-size: 18px;
+                  width: 18px;
+                  height: 18px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                }
+                
+                &.view-button {
+                  color: #2196F3;
+                  
+                  &:hover {
+                    background-color: rgba(33, 150, 243, 0.1);
+                    color: #1976D2;
+                  }
+                }
+                
+                &.edit-button {
+                  color: #FF9800;
+                  
+                  &:hover {
+                    background-color: rgba(255, 152, 0, 0.1);
+                    color: #F57C00;
+                  }
+                }
+                
+                &.delete-button {
+                  color: #f44336;
+                  
+                  &:hover {
+                    background-color: rgba(244, 67, 54, 0.1);
+                    color: #d32f2f;
+                  }
+                }
               }
             }
           }
         }
       }
-
-      .mat-row:hover {
-        background-color: #f5f5f5;
-      }
-    }
-  }
-
-  .mat-paginator {
-    margin-top: 20px;
-  }
-
-  @media (max-width: 768px) {
-    .mat-column-email,
-    .mat-column-phone {
-      display: none;
     }
   }
 }
 
-// Patient Details Dialog Styles
+.mat-paginator {
+  margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+  .mat-column-email,
+  .mat-column-phone {
+    display: none;
+  }
+}
+
+/* Patient Details Dialog - Style moderne */
 ::ng-deep .patient-details-dialog-panel {
   .mat-mdc-dialog-container {
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 0;
     overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    max-width: 800px;
+    width: 90vw;
   }
 }
 
 .patient-details-dialog {
   .mat-mdc-dialog-title {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 8px;
-    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    background: linear-gradient(135deg, #20c997 0%, #0dcaf0 100%);
     color: white;
     margin: 0;
-    padding: 20px 24px;
-    font-size: 20px;
-    font-weight: 500;
+    padding: 18px 24px;
+    position: relative;
+    overflow: hidden;
     
-    mat-icon {
-      font-size: 24px;
-      width: 24px;
-      height: 24px;
+    /* Effet de profondeur */
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    
+    h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      
+      .mat-icon {
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+      }
+    }
+    
+    .close-button {
+      color: white;
+      min-width: 40px;
+      width: 40px;
+      height: 40px;
+      position: relative;
+      z-index: 1;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+        transform: scale(1.05);
+      }
+      
+      .mat-icon {
+        font-size: 20px;
+      }
     }
   }
   
-  .patient-details-content {
+  .mat-mdc-dialog-content {
     padding: 24px;
+    max-height: 70vh;
+    overflow-y: auto;
+    background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
     
-    .patient-info-grid {
+    .patient-info {
       display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 16px;
       
-      .info-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 16px;
-        padding: 16px;
-        background: #f8f9fa;
+      .info-card {
+        background: white;
         border-radius: 8px;
-        border-left: 4px solid #4CAF50;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(32, 201, 151, 0.1);
         transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 3px;
+          height: 100%;
+          background: linear-gradient(180deg, #20c997 0%, #0dcaf0 100%);
+        }
         
         &:hover {
-          background: #e8f5e8;
-          border-left-color: #45a049;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(32, 201, 151, 0.12);
         }
         
-        &.medical-history {
-          border-left-color: #2196F3;
+        .info-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 12px;
           
-          &:hover {
-            border-left-color: #1976D2;
+          .info-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #20c997 0%, #0dcaf0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
           }
-        }
-        
-        mat-icon {
-          color: #4CAF50;
-          font-size: 24px;
-          width: 24px;
-          height: 24px;
-          flex-shrink: 0;
-          margin-top: 2px;
+          
+          .info-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #2c3e50;
+          }
         }
         
         .info-content {
-          flex: 1;
-          
-          label {
-            display: block;
-            font-size: 12px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-            font-weight: 500;
-          }
-          
-          span {
-            font-size: 16px;
-            color: #333;
-            font-weight: 400;
-            line-height: 1.4;
-            word-wrap: break-word;
+          .info-item {
+            margin-bottom: 10px;
             
-            &.patient-number-badge {
-              display: inline-block;
-              padding: 4px 12px;
-              background: #1976d2;
-              color: white;
-              border-radius: 20px;
-              font-size: 14px;
-              font-weight: 600;
-              text-align: center;
-              min-width: 40px;
+            &:last-child {
+              margin-bottom: 0;
             }
+            
+            .label {
+              font-weight: 500;
+              color: #6c757d;
+              font-size: 12px;
+              margin-bottom: 3px;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+            
+            .value {
+              color: #2c3e50;
+              font-size: 14px;
+              font-weight: 500;
+              padding: 6px 10px;
+              background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+              border-radius: 6px;
+              border: 1px solid #dee2e6;
+              display: inline-block;
+              min-width: 120px;
+              
+              &.highlight {
+                background: linear-gradient(135deg, rgba(32, 201, 151, 0.1) 0%, rgba(13, 202, 240, 0.1) 100%);
+                border-color: rgba(32, 201, 151, 0.3);
+                color: #20c997;
+                font-weight: 600;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    /* Section spéciale pour les informations principales */
+    .primary-info {
+      background: linear-gradient(135deg, rgba(32, 201, 151, 0.05) 0%, rgba(13, 202, 240, 0.05) 100%);
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 18px;
+      border: 1px solid rgba(32, 201, 151, 0.2);
+      
+      .patient-name {
+        font-size: 24px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        
+        .patient-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #20c997 0%, #0dcaf0 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 20px;
+        }
+      }
+      
+      .patient-details {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+        
+        .detail-badge {
+          background: white;
+          padding: 6px 12px;
+          border-radius: 16px;
+          font-weight: 500;
+          color: #20c997;
+          border: 1px solid rgba(32, 201, 151, 0.3);
+          font-size: 12px;
+          
+          .mat-icon {
+            margin-right: 4px;
+            font-size: 14px;
+            width: 14px;
+            height: 14px;
           }
         }
       }
@@ -254,15 +506,75 @@
   
   .mat-mdc-dialog-actions {
     padding: 16px 24px;
-    background: #f8f9fa;
-    margin: 0;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-top: 1px solid rgba(32, 201, 151, 0.1);
+    justify-content: space-between;
+    gap: 12px;
     
-    button {
-      margin-left: 8px;
+    .action-group {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .mat-mdc-button {
+      border-radius: 6px;
+      font-weight: 500;
+      padding: 10px 20px;
+      text-transform: none;
+      font-size: 13px;
+      transition: all 0.2s ease;
       
-      &[mat-raised-button] {
-        border-radius: 6px;
-        padding: 0 20px;
+      &.primary-button {
+        background: linear-gradient(135deg, #20c997 0%, #0dcaf0 100%);
+        color: white;
+        box-shadow: 0 2px 6px rgba(32, 201, 151, 0.3);
+        
+        &:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 3px 8px rgba(32, 201, 151, 0.4);
+        }
+        
+        .mat-icon {
+          margin-right: 6px;
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
+      }
+      
+      &.secondary-button {
+        background: white;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+        
+        &:hover {
+          background: #f8f9fa;
+          color: #495057;
+        }
+        
+        .mat-icon {
+          margin-right: 6px;
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
+      }
+      
+      &.treatments-button {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        color: white;
+        
+        &:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 3px 8px rgba(23, 162, 184, 0.4);
+        }
+        
+        .mat-icon {
+          margin-right: 6px;
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
       }
     }
   }

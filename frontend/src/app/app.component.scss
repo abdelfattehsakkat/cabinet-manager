@@ -1,37 +1,161 @@
-:host {
+.app-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  overflow: hidden;
 }
 
-mat-toolbar {
+.app-header {
+  background: linear-gradient(135deg, #20c997 0%, #0dcaf0 100%);
+  color: white;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 2;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  .menu-toggle {
+    color: white;
+    margin-right: 16px;
+    
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+  
+  .app-title {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
 }
 
-mat-sidenav-container {
+.sidenav-container {
   flex: 1;
-  margin-top: 64px; // height of toolbar
-
-  mat-sidenav {
-    width: 250px;
-    padding-top: 20px;
+  margin-top: 64px;
+  
+  .app-sidebar {
+    width: 280px;
+    background: #ffffff;
+    border-right: 1px solid #e9ecef;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+    
+    .sidebar-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #e9ecef;
+      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+      
+      .logo-section {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        
+        .logo-icon {
+          width: 32px;
+          height: 32px;
+          font-size: 32px;
+          color: #20c997;
+          background: linear-gradient(135deg, rgba(32, 201, 151, 0.1) 0%, rgba(13, 202, 240, 0.1) 100%);
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .logo-text {
+          font-size: 18px;
+          font-weight: 700;
+          color: #2c3e50;
+          letter-spacing: 0.5px;
+        }
+      }
+    }
+    
+    .nav-menu {
+      padding: 16px 0;
+      
+      .nav-item {
+        margin: 4px 16px;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        
+        &::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 4px;
+          height: 100%;
+          background: transparent;
+          transition: all 0.3s ease;
+        }
+        
+        .nav-icon {
+          color: #6c757d;
+          margin-right: 16px;
+          transition: all 0.3s ease;
+          width: 24px;
+          height: 24px;
+          font-size: 24px;
+        }
+        
+        .nav-text {
+          color: #495057;
+          font-weight: 500;
+          font-size: 15px;
+          transition: all 0.3s ease;
+        }
+        
+        &:hover {
+          background: linear-gradient(135deg, rgba(32, 201, 151, 0.05) 0%, rgba(13, 202, 240, 0.05) 100%);
+          
+          .nav-icon {
+            color: #20c997;
+            transform: scale(1.1);
+          }
+          
+          .nav-text {
+            color: #20c997;
+          }
+        }
+        
+        &.active {
+          background: linear-gradient(135deg, rgba(32, 201, 151, 0.1) 0%, rgba(13, 202, 240, 0.1) 100%);
+          
+          &::before {
+            background: linear-gradient(180deg, #20c997 0%, #0dcaf0 100%);
+          }
+          
+          .nav-icon {
+            color: #20c997;
+            transform: scale(1.1);
+          }
+          
+          .nav-text {
+            color: #20c997;
+            font-weight: 600;
+          }
+        }
+      }
+    }
   }
-
-  .mat-icon {
-    margin-right: 12px;
-  }
-
-  .active {
-    background: rgba(0, 0, 0, 0.04);
+  
+  .main-content {
+    background: #f8f9fa;
+    overflow-y: auto;
+    padding: 0;
   }
 }
 
-.container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+@media (max-width: 768px) {
+  .sidenav-container .app-sidebar {
+    width: 240px;
+  }
+  
+  .app-header .app-title {
+    font-size: 18px;
+  }
 }

@@ -4,6 +4,7 @@ import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/p
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatDialog, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCardModule } from '@angular/material/card';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,7 +32,8 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
     MatInputModule,
     MatDialogModule,
     MatTooltipModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatCardModule
   ]
 })
 export class PatientListComponent implements OnInit, OnDestroy {
@@ -135,9 +137,12 @@ export class PatientListComponent implements OnInit, OnDestroy {
   viewPatient(patient: Patient) {
     this.selectedPatient = patient;
     this.patientDetailsDialogRef = this.dialog.open(this.patientDetailsDialog, {
-      width: '600px',
-      maxWidth: '90vw',
-      panelClass: 'patient-details-dialog-panel'
+      width: '800px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      panelClass: 'patient-details-dialog-panel',
+      disableClose: false,
+      autoFocus: false
     });
   }
 
@@ -153,6 +158,27 @@ export class PatientListComponent implements OnInit, OnDestroy {
       this.patientService.deletePatient(patient._id).subscribe(() => {
         this.loadPatients();
       });
+    }
+  }
+
+  calculateAge(dateOfBirth: Date | undefined): number {
+    if (!dateOfBirth) return 0;
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age;
+  }
+
+  viewPatientTreatments(): void {
+    if (this.selectedPatient && this.patientDetailsDialogRef) {
+      this.patientDetailsDialogRef.close();
+      this.router.navigate(['/treatments/patient', this.selectedPatient._id]);
     }
   }
 
