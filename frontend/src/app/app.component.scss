@@ -78,66 +78,117 @@
       .nav-item {
         margin: 4px 16px;
         border-radius: 12px;
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
         
+        // Barre indicatrice à gauche
         &::before {
           content: '';
           position: absolute;
           left: 0;
+          top: 50%;
+          width: 0;
+          height: 0;
+          background: linear-gradient(180deg, #20c997 0%, #0dcaf0 100%);
+          border-radius: 0 4px 4px 0;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          transform: translateY(-50%);
+          box-shadow: 0 0 0 rgba(32, 201, 151, 0);
+        }
+        
+        // Effet de brillance qui traverse
+        &::after {
+          content: '';
+          position: absolute;
           top: 0;
-          width: 4px;
+          left: -100%;
+          width: 100%;
           height: 100%;
-          background: transparent;
-          transition: all 0.3s ease;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+          transition: left 0.6s ease;
+          pointer-events: none;
         }
         
         .nav-icon {
-          color: #6c757d;
+          color: #8e9aaf; // Gris plus doux pour contraster avec l'actif
           margin-right: 16px;
           transition: all 0.3s ease;
           width: 24px;
           height: 24px;
           font-size: 24px;
+          font-weight: 400;
         }
         
         .nav-text {
-          color: #495057;
-          font-weight: 500;
+          color: #6c757d; // Gris plus contrasté
+          font-weight: 400; // Plus léger pour contraster avec le 900 de l'actif
           font-size: 15px;
           transition: all 0.3s ease;
+          text-shadow: none;
         }
         
         &:hover {
-          background: linear-gradient(135deg, rgba(32, 201, 151, 0.05) 0%, rgba(13, 202, 240, 0.05) 100%);
+          background: linear-gradient(135deg, rgba(32, 201, 151, 0.06) 0%, rgba(13, 202, 240, 0.06) 100%);
+          transform: translateX(2px); // Très subtil
+          box-shadow: 0 2px 8px rgba(32, 201, 151, 0.1); // Ombre très douce
+          
+          &::before {
+            width: 3px;
+            height: 50%;
+            box-shadow: 1px 0 4px rgba(32, 201, 151, 0.2);
+          }
+          
+          &::after {
+            left: 100%;
+          }
           
           .nav-icon {
             color: #20c997;
-            transform: scale(1.1);
+            transform: scale(1.05); // Échelle très subtile
           }
           
           .nav-text {
             color: #20c997;
+            transform: translateX(1px); // Translation minimale
           }
         }
         
-        &.active {
-          background: linear-gradient(135deg, rgba(32, 201, 151, 0.1) 0%, rgba(13, 202, 240, 0.1) 100%);
+        // Aussi pour les classes génériques au cas où
+        &.active,
+        &.mat-list-item-active,
+        &.nav-active {
+          background: linear-gradient(135deg, rgba(32, 201, 151, 0.12) 0%, rgba(13, 202, 240, 0.12) 100%) !important;
+          transform: translateX(4px) !important; // Réduit de 8px à 4px
+          box-shadow: 0 3px 12px rgba(32, 201, 151, 0.2) !important; // Ombre plus douce
+          border-left: 3px solid rgba(32, 201, 151, 0.6) !important; // Bordure simple à gauche
+          border-radius: 0 12px 12px 0 !important; // Arrondi seulement à droite
           
           &::before {
-            background: linear-gradient(180deg, #20c997 0%, #0dcaf0 100%);
+            width: 4px !important; // Plus fin
+            height: 70% !important; // Plus court
+            background: linear-gradient(180deg, #20c997 0%, #0dcaf0 100%) !important;
+            box-shadow: 2px 0 8px rgba(32, 201, 151, 0.3) !important; // Ombre plus douce
           }
           
           .nav-icon {
-            color: #20c997;
-            transform: scale(1.1);
+            color: #17a085 !important; // Vert plus doux
+            transform: scale(1.1) !important; // Échelle réduite
+            filter: none !important; // Suppression des drop-shadows
+            font-weight: 600 !important; // Moins gras
           }
           
           .nav-text {
-            color: #20c997;
-            font-weight: 600;
+            color: #17a085 !important; // Même vert doux
+            font-weight: 600 !important; // Réduit de 900 à 600
+            font-size: 15px !important; // Taille normale
+            transform: translateX(2px) !important; // Translation réduite
+            text-shadow: none !important; // Suppression du text-shadow
+            letter-spacing: 0.2px !important; // Espacement réduit
           }
+          
+          // Animation plus subtile
+          animation: none !important; // Suppression des animations continues
         }
       }
     }
@@ -150,9 +201,56 @@
   }
 }
 
+// Animation douce pour l'élément de menu actif (optionnelle)
+@keyframes softActiveGlow {
+  0%, 100% {
+    box-shadow: 0 3px 12px rgba(32, 201, 151, 0.2);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(32, 201, 151, 0.25);
+  }
+}
+
+// Effet de glissement très doux pour l'indicateur
+@keyframes gentleIndicator {
+  0% { width: 0; height: 0; }
+  50% { width: 3px; height: 60%; }
+  100% { width: 3px; height: 50%; }
+}
+
+// Effet de glissement global pour la sidebar
+.app-sidebar {
+  .nav-menu .nav-item {
+    // Effet de rebond très doux au hover
+    &:hover:not(.active):not(.nav-active):not(.mat-list-item-active) {
+      &::before {
+        animation: gentleIndicator 0.4s ease-out;
+      }
+    }
+  }
+}
+
+@keyframes bounceIndicator {
+  0% { width: 0; height: 0; }
+  50% { width: 3px; height: 50%; }
+  100% { width: 2px; height: 40%; }
+}
+
 @media (max-width: 768px) {
   .sidenav-container .app-sidebar {
     width: 240px;
+    
+    .nav-menu .nav-item {
+      margin: 4px 12px;
+      
+      &.active {
+        transform: translateX(4px);
+      }
+      
+      &:hover {
+        transform: translateX(2px);
+      }
+    }
   }
   
   .app-header .app-title {

@@ -18,15 +18,15 @@
       </div>
       
       <mat-nav-list class="nav-menu">
-        <a mat-list-item routerLink="/patients" routerLinkActive="active" class="nav-item">
+        <a mat-list-item routerLink="/patients" routerLinkActive="nav-active" [routerLinkActiveOptions]="{exact: false}" class="nav-item">
           <mat-icon class="nav-icon">people</mat-icon>
           <span class="nav-text">Patients</span>
         </a>
-        <a mat-list-item routerLink="/treatments" routerLinkActive="active" class="nav-item">
+        <a mat-list-item routerLink="/treatments" routerLinkActive="nav-active" [routerLinkActiveOptions]="{exact: false}" class="nav-item">
           <mat-icon class="nav-icon">medical_services</mat-icon>
           <span class="nav-text">Soins</span>
         </a>
-        <a mat-list-item routerLink="/calendar" routerLinkActive="active" class="nav-item">
+        <a mat-list-item routerLink="/calendar" routerLinkActive="nav-active" [routerLinkActiveOptions]="{exact: false}" class="nav-item">
           <mat-icon class="nav-icon">calendar_today</mat-icon>
           <span class="nav-text">Calendrier</span>
         </a>
