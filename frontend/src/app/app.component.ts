@@ -11,6 +11,8 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from './auth/services/auth.service';
 import { User } from './auth/models/user.model';
 import { Observable } from 'rxjs';
+import { MenuPermissionService, MenuItem } from './shared/services/menu-permission.service';
+import { HasPermissionDirective } from './shared/directives/has-permission.directive';
 
 @Component({
   selector: 'app-root',
@@ -28,22 +30,34 @@ import { Observable } from 'rxjs';
     MatIconModule,
     MatButtonModule,
     MatMenuModule,
-    MatDividerModule
+    MatDividerModule,
+    HasPermissionDirective
   ]
 })
 export class AppComponent implements OnInit {
   title = 'Cabinet Médical';
   currentUser$: Observable<User | null>;
+  visibleMenuItems: MenuItem[] = [];
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    public menuPermissionService: MenuPermissionService
   ) {
     this.currentUser$ = this.authService.currentUser$;
+    
+    // S'abonner aux changements d'utilisateur pour mettre à jour le menu
+    this.currentUser$.subscribe(user => {
+      this.updateVisibleMenuItems();
+    });
   }
 
   ngOnInit(): void {
-    // Component initialization
+    this.updateVisibleMenuItems();
+  }
+
+  private updateVisibleMenuItems(): void {
+    this.visibleMenuItems = this.menuPermissionService.getVisibleMenuItems();
   }
 
   logout(): void {

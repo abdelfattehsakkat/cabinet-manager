@@ -20,6 +20,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterModule } from '@angular/router';
 
+// Custom Directives
+import { HasPermissionDirective } from './directives/has-permission.directive';
+
 const materialModules = [
   MatButtonModule,
   MatCardModule,
@@ -46,12 +49,14 @@ const materialModules = [
     CommonModule,
     ReactiveFormsModule,
     RouterModule,
+    HasPermissionDirective,
     ...materialModules
   ],
   exports: [
     CommonModule,
     ReactiveFormsModule,
     RouterModule,
+    HasPermissionDirective,
     ...materialModules
   ]
 })

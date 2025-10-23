@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import User, { IUser } from '../models/user.model';
 import { Types } from 'mongoose';
 
@@ -9,15 +9,11 @@ const generateToken = (id: string | Types.ObjectId): string => {
         throw new Error('JWT_SECRET is not defined');
     }
     
-    const expiresIn = process.env.JWT_EXPIRE || '24h'; // 24 heures par défaut
-    
     return jwt.sign(
         { id: id.toString() }, 
         secret, 
         { 
-            expiresIn: expiresIn,
-            issuer: 'cabinet-ai',
-            audience: 'cabinet-ai-users'
+            expiresIn: '24h'
         }
     );
 };

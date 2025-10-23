@@ -57,24 +57,64 @@
   <mat-sidenav-container class="sidenav-container">
     <mat-sidenav #sidenav mode="side" opened="true" class="app-sidebar">
       <div class="sidebar-header">
-        <div class="logo-section">
-          <mat-icon class="logo-icon">local_hospital</mat-icon>
-          <span class="logo-text">Cabinet AI</span>
+        <div class="logo-section" routerLink="/dashboard" style="cursor: pointer;">
+          <mat-icon class="logo-icon">home</mat-icon>
+          <span class="logo-text">Home</span>
         </div>
       </div>
       
       <mat-nav-list class="nav-menu">
-        <a mat-list-item routerLink="/patients" routerLinkActive="nav-active" [routerLinkActiveOptions]="{exact: false}" class="nav-item">
+        <!-- Dashboard pour les admins -->
+        <a mat-list-item 
+           *appHasPermission="'dashboard'"
+           routerLink="/dashboard" 
+           routerLinkActive="nav-active" 
+           [routerLinkActiveOptions]="{exact: false}" 
+           class="nav-item">
+          <mat-icon class="nav-icon">dashboard</mat-icon>
+          <span class="nav-text">Tableau de bord</span>
+        </a>
+        
+        <!-- Patients - accessible à tous les rôles -->
+        <a mat-list-item 
+           routerLink="/patients" 
+           routerLinkActive="nav-active" 
+           [routerLinkActiveOptions]="{exact: false}" 
+           class="nav-item">
           <mat-icon class="nav-icon">people</mat-icon>
           <span class="nav-text">Patients</span>
         </a>
-        <a mat-list-item routerLink="/treatments" routerLinkActive="nav-active" [routerLinkActiveOptions]="{exact: false}" class="nav-item">
+        
+        <!-- Soins - accessible aux admins et médecins -->
+        <a mat-list-item 
+           *appHasPermission="'treatments'"
+           routerLink="/treatments" 
+           routerLinkActive="nav-active" 
+           [routerLinkActiveOptions]="{exact: false}" 
+           class="nav-item">
           <mat-icon class="nav-icon">medical_services</mat-icon>
           <span class="nav-text">Soins</span>
         </a>
-        <a mat-list-item routerLink="/calendar" routerLinkActive="nav-active" [routerLinkActiveOptions]="{exact: false}" class="nav-item">
+        
+        <!-- Calendrier - accessible à tous les rôles -->
+        <a mat-list-item 
+           routerLink="/calendar" 
+           routerLinkActive="nav-active" 
+           [routerLinkActiveOptions]="{exact: false}" 
+           class="nav-item">
           <mat-icon class="nav-icon">calendar_today</mat-icon>
           <span class="nav-text">Calendrier</span>
+        </a>
+        
+        <!-- Gestion des utilisateurs - accessible aux admins uniquement -->
+        <a mat-list-item 
+           *appHasPermission="'userManagement'"
+           routerLink="/auth/user-management" 
+           routerLinkActive="nav-active" 
+           [routerLinkActiveOptions]="{exact: false}" 
+           class="nav-item">
+          <mat-icon class="nav-icon">group</mat-icon>
+          <span class="nav-text">Utilisateurs</span>
         </a>
       </mat-nav-list>
     </mat-sidenav>
