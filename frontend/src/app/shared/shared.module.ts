@@ -16,6 +16,9 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { RouterModule } from '@angular/router';
 
 const materialModules = [
   MatButtonModule,
@@ -32,7 +35,9 @@ const materialModules = [
   MatDialogModule,
   MatDatepickerModule,
   MatNativeDateModule,
-  MatSelectModule
+  MatSelectModule,
+  MatProgressSpinnerModule,
+  MatSnackBarModule
 ];
 
 @NgModule({
@@ -40,11 +45,13 @@ const materialModules = [
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterModule,
     ...materialModules
   ],
   exports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterModule,
     ...materialModules
   ]
 })
