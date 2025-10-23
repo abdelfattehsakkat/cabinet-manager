@@ -10,7 +10,7 @@
           {{patient.firstName}} {{patient.lastName}}
         </mat-option>
       </mat-autocomplete>
-      <mat-error *ngIf="appointmentForm.get('patientId')?.invalid">Le patient est requis</mat-error>
+      <mat-error *ngIf="appointmentForm.get('patientId')?.invalid">{{getErrorMessage('patientId')}}</mat-error>
     </mat-form-field>
 
     <div class="form-row">
@@ -19,13 +19,13 @@
         <input matInput [matDatepicker]="picker" formControlName="date" required>
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
-        <mat-error *ngIf="appointmentForm.get('date')?.invalid">La date est requise</mat-error>
+        <mat-error *ngIf="appointmentForm.get('date')?.invalid">{{getErrorMessage('date')}}</mat-error>
       </mat-form-field>
 
       <mat-form-field>
         <mat-label>Heure</mat-label>
         <input matInput type="time" formControlName="time" required>
-        <mat-error *ngIf="appointmentForm.get('time')?.invalid">L'heure est requise</mat-error>
+        <mat-error *ngIf="appointmentForm.get('time')?.invalid">{{getErrorMessage('time')}}</mat-error>
       </mat-form-field>
     </div>
 
@@ -34,7 +34,7 @@
         <mat-label>Durée (minutes)</mat-label>
         <input matInput type="number" formControlName="duration" min="15" max="120" required>
         <mat-error *ngIf="appointmentForm.get('duration')?.invalid">
-          La durée doit être entre 15 et 120 minutes
+          {{getErrorMessage('duration')}}
         </mat-error>
       </mat-form-field>
 
@@ -45,7 +45,7 @@
             {{type}}
           </mat-option>
         </mat-select>
-        <mat-error *ngIf="appointmentForm.get('type')?.invalid">Le type est requis</mat-error>
+        <mat-error *ngIf="appointmentForm.get('type')?.invalid">{{getErrorMessage('type')}}</mat-error>
       </mat-form-field>
     </div>
 

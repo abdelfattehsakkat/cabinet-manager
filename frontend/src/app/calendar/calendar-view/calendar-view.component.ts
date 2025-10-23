@@ -17,6 +17,7 @@ import { Calendar } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import frLocale from '@fullcalendar/core/locales/fr';
 import { PatientService } from '../../patients/services/patient.service';
 
 @Component({
@@ -44,19 +45,34 @@ export class CalendarViewComponent implements OnInit {
   
   calendarOptions: any = {
     plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+    locale: frLocale,
     initialView: 'dayGridMonth',
     weekends: true,
     editable: true,
     selectable: true,
     selectMirror: true,
     dayMaxEvents: true,
+    height: 'auto',
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
       right: 'dayGridMonth,timeGridWeek,timeGridDay'
     },
-    eventClick: this.handleEventClick.bind(this),
-    eventContent: this.handleEventContent.bind(this)
+    buttonText: {
+      today: 'Aujourd\'hui',
+      month: 'Mois',
+      week: 'Semaine',
+      day: 'Jour',
+      list: 'Liste'
+    },
+    slotMinTime: '08:00:00',
+    slotMaxTime: '19:00:00',
+    slotDuration: '00:30:00',
+    slotLabelInterval: '01:00:00',
+    allDaySlot: false,
+    nowIndicator: true,
+    eventDisplay: 'block',
+    eventClick: this.handleEventClick.bind(this)
   };
 
   constructor(
@@ -77,16 +93,41 @@ export class CalendarViewComponent implements OnInit {
       calendarApi.removeAllEvents();
       
       this.appointments.forEach(appointment => {
+        const startDate = new Date(appointment.date);
+        const endDate = new Date(startDate.getTime() + (appointment.duration || 30) * 60000);
+        
+        // Créer un titre plus informatif
+        const patientName = appointment.patientName || this.getPatientNameFromPopulated(appointment) || 'Patient';
+        const appointmentType = appointment.type || 'Consultation';
+        const title = `${patientName} - ${appointmentType}`;
+        
         calendarApi.addEvent({
           id: appointment._id,
-          title: appointment.patientName || this.getPatientNameFromPopulated(appointment) || 'Patient',
-          start: new Date(appointment.date),
-          end: new Date(new Date(appointment.date).getTime() + appointment.duration * 60000),
+          title: title,
+          start: startDate,
+          end: endDate,
+          backgroundColor: this.getEventColor(appointment.type),
+          borderColor: this.getEventColor(appointment.type),
+          textColor: '#ffffff',
           extendedProps: {
-            appointment: appointment
+            appointment: appointment,
+            patientName: patientName,
+            type: appointmentType,
+            notes: appointment.notes
           }
         });
       });
+    }
+  }
+  
+  // Méthode pour attribuer des couleurs selon le type de RDV
+  getEventColor(type: string): string {
+    switch (type) {
+      case 'Consultation': return '#2e7d32';
+      case 'Soins': return '#1976d2';
+      case 'Suivi': return '#f57c00';
+      case 'Urgence': return '#d32f2f';
+      default: return '#6a1b9a';
     }
   }
   
@@ -99,9 +140,14 @@ export class CalendarViewComponent implements OnInit {
   }
 
   loadAppointments() {
+    // Charger les RDV pour tout le mois visible, pas seulement la date sélectionnée
     const startDate = new Date(this.selectedDate);
+    startDate.setDate(1); // Premier jour du mois
     startDate.setHours(0, 0, 0, 0);
+    
     const endDate = new Date(this.selectedDate);
+    endDate.setMonth(endDate.getMonth() + 1); // Mois suivant
+    endDate.setDate(0); // Dernier jour du mois actuel
     endDate.setHours(23, 59, 59, 999);
 
     // Convert to UTC for API request
@@ -121,6 +167,7 @@ export class CalendarViewComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading appointments:', error);
+        this.snackBar.open('Erreur lors du chargement des rendez-vous', 'Fermer', { duration: 3000 });
       }
     });
   }
@@ -292,28 +339,7 @@ export class CalendarViewComponent implements OnInit {
     });
   }
 
-  handleEventContent(arg: any) {
-    return {
-      html: `
-        <div class="event-content">
-          <span>${arg.event.title}</span>
-          <button class="delete-btn" data-event-id="${arg.event.id}">
-            <i class="fas fa-trash"></i>
-          </button>
-        </div>
-      `
-    };
-  }
-
   handleEventClick(info: any) {
-    if (info.jsEvent.target.closest('.delete-btn')) {
-      // Handle delete button click
-      const eventId = info.event.id;
-      this.deleteAppointment(eventId);
-      return;
-    }
-    
-    // Show appointment details if not clicking delete button
     const appointment = info.event.extendedProps.appointment;
     this.showAppointmentDetails(appointment);
   }

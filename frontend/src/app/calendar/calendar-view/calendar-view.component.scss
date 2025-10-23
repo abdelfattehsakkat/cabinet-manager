@@ -10,43 +10,79 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    padding: 16px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 
     h1 {
       margin: 0;
       color: #2e7d32;
+      font-size: 1.5rem;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+
+      .add-appointment-header-button {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 24px;
+        
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
     }
   }
 
   .schedule-container {
     flex: 1;
     background: white;
-    border-radius: 4px;
+    border-radius: 8px;
     overflow-y: auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
 
     .time-slots {
       .time-slot {
         display: flex;
-        min-height: 60px;
+        min-height: 70px;
         border-bottom: 1px solid #e0e0e0;
+        transition: all 0.2s ease;
 
         &:last-child {
           border-bottom: none;
         }
 
+        &:hover {
+          background-color: #f8f9fa;
+        }
+
         .time-label {
           width: 80px;
-          padding: 8px;
+          padding: 12px;
           color: #666;
           font-weight: 500;
           border-right: 1px solid #e0e0e0;
           display: flex;
           align-items: center;
+          background-color: #fafafa;
+          font-size: 0.9em;
         }
 
         .appointment-slot {
           flex: 1;
-          padding: 8px;
+          padding: 12px;
           transition: background-color 0.2s;
+          cursor: pointer;
+          position: relative;
 
           &:hover {
             background-color: #f5f5f5;
@@ -60,38 +96,246 @@
             }
           }
 
+          &:not(.has-appointment)::before {
+            content: "+ Ajouter un RDV";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #999;
+            font-size: 0.9em;
+            opacity: 0;
+            transition: opacity 0.2s;
+          }
+
+          &:not(.has-appointment):hover::before {
+            opacity: 1;
+          }
+
           .appointment-card {
             background: white;
-            border-radius: 4px;
-            padding: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 6px;
+            padding: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            border-left: 4px solid #2e7d32;
+            transition: all 0.2s ease;
+
+            &:hover {
+              box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+              transform: translateY(-1px);
+            }
 
             .appointment-header {
               display: flex;
               justify-content: space-between;
               align-items: center;
-              margin-bottom: 4px;
+              margin-bottom: 6px;
 
               .appointment-type {
                 color: #1976d2;
-                font-size: 0.9em;
+                font-size: 0.85em;
+                background: #e3f2fd;
+                padding: 2px 8px;
+                border-radius: 12px;
+                font-weight: 500;
               }
+
+              .delete-button {
+                opacity: 0;
+                transition: opacity 0.2s;
+              }
+            }
+
+            &:hover .delete-button {
+              opacity: 1;
             }
 
             .appointment-details {
               color: #666;
               font-size: 0.9em;
+              line-height: 1.4;
             }
           }
         }
       }
     }
   }
+}
 
-  .add-appointment-button {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
+@media (max-width: 768px) {
+  .calendar-container {
+    .calendar-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+
+      .header-controls {
+        justify-content: space-between;
+        
+        .add-appointment-header-button {
+          white-space: nowrap;
+        }
+      }
+    }
+  }
+}
+
+// Styles pour FullCalendar
+full-calendar {
+  .fc {
+    font-family: inherit;
+  }
+
+  // Amélioration de l'apparence générale des événements
+  .fc-event {
+    border-radius: 4px;
+    border: none !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 2px 4px;
+    
+    &:hover {
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      transform: translateY(-1px);
+      opacity: 0.9;
+    }
+    
+    .fc-event-title {
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: white !important;
+    }
+    
+    .fc-event-time {
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.9) !important;
+    }
+    
+    .fc-event-main {
+      padding: 2px 4px;
+    }
+  }
+
+  // Styles spécifiques pour différentes vues
+  .fc-daygrid-event {
+    margin: 1px 2px;
+    border-radius: 3px;
+    min-height: 20px;
+    
+    .fc-event-title {
+      font-size: 0.8rem;
+      line-height: 1.2;
+    }
+  }
+
+  .fc-timegrid-event {
+    border-radius: 4px;
+    margin: 1px 2px;
+    
+    .fc-event-title {
+      font-size: 0.85rem;
+      line-height: 1.2;
+    }
+    
+    .fc-event-time {
+      margin-bottom: 2px;
+    }
+  }
+
+  // Styles pour les boutons
+  .fc-button-primary {
+    background-color: #2e7d32;
+    border-color: #2e7d32;
+    
+    &:hover {
+      background-color: #1b5e20;
+      border-color: #1b5e20;
+    }
+    
+    &:active, &:focus {
+      background-color: #1b5e20;
+      border-color: #1b5e20;
+      box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.25);
+    }
+  }
+
+  // Amélioration de l'affichage des en-têtes
+  .fc-col-header-cell {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    
+    .fc-col-header-cell-cushion {
+      color: #2e7d32;
+      font-weight: 600;
+      padding: 8px 4px;
+    }
+  }
+
+  // Amélioration des cellules de jour
+  .fc-daygrid-day {
+    &:hover {
+      background-color: #f8f9fa;
+    }
+  }
+
+  .fc-timegrid-slot {
+    border-color: #e9ecef;
+  }
+
+  .fc-timegrid-axis {
+    border-color: #e9ecef;
+  }
+
+  // Styles pour la vue mois
+  .fc-daygrid .fc-col-header-cell {
+    .fc-col-header-cell-cushion {
+      color: #2e7d32;
+      font-weight: 500;
+      font-size: 0.85rem;
+      text-transform: capitalize;
+    }
+  }
+
+  // Styles pour la vue jour
+  .fc-timeGridDay .fc-col-header-cell {
+    .fc-col-header-cell-cushion {
+      color: #2e7d32;
+      font-weight: 600;
+      font-size: 1rem;
+      text-transform: none;
+    }
+  }
+
+  // Amélioration de l'apparence générale
+  .fc-event {
+    border-radius: 4px;
+    border: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    
+    &:hover {
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+  }
+
+  .fc-button-primary {
+    background-color: #2e7d32;
+    border-color: #2e7d32;
+    
+    &:hover {
+      background-color: #1b5e20;
+      border-color: #1b5e20;
+    }
+    
+    &:active, &:focus {
+      background-color: #1b5e20;
+      border-color: #1b5e20;
+      box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.25);
+    }
   }
 }
 
@@ -111,6 +355,16 @@
             font-size: 0.9em;
           }
         }
+      }
+    }
+  }
+
+  // Responsive pour FullCalendar
+  full-calendar {
+    .fc-timegrid .fc-col-header-cell {
+      .fc-col-header-cell-cushion {
+        font-size: 0.75rem;
+        padding: 4px 2px;
       }
     }
   }

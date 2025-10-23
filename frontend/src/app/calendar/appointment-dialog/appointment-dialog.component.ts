@@ -26,6 +26,7 @@ export class AppointmentDialogComponent implements OnInit {
   
   appointmentTypes = [
     'Consultation',
+    'Soins',
     'Suivi',
     'Urgence',
     'Autre'
@@ -44,7 +45,7 @@ export class AppointmentDialogComponent implements OnInit {
       patientName: '',
       date: data.date,
       duration: 30,
-      type: 'Consultation',
+      type: 'Consultation générale',
       notes: ''
     };
 
@@ -84,7 +85,7 @@ export class AppointmentDialogComponent implements OnInit {
       date: [appointment.date, [Validators.required]],
       time: [this.getTimeString(appointment.date), [Validators.required]],
       duration: [appointment.duration, [Validators.required, Validators.min(15), Validators.max(120)]],
-      type: [appointment.type, [Validators.required]],
+      type: [appointment.type || 'Consultation générale', [Validators.required]],
       notes: [appointment.notes]
     });
   }
@@ -201,5 +202,26 @@ export class AppointmentDialogComponent implements OnInit {
 
   onCancel() {
     this.dialogRef.close();
+  }
+
+  getErrorMessage(fieldName: string): string {
+    const field = this.appointmentForm.get(fieldName);
+    if (field?.hasError('required')) {
+      switch (fieldName) {
+        case 'patientId': return 'Le patient est requis';
+        case 'date': return 'La date est requise';
+        case 'time': return 'L\'heure est requise';
+        case 'duration': return 'La durée est requise';
+        case 'type': return 'Le type de rendez-vous est requis';
+        default: return 'Ce champ est requis';
+      }
+    }
+    if (field?.hasError('min')) {
+      return 'La durée minimale est de 15 minutes';
+    }
+    if (field?.hasError('max')) {
+      return 'La durée maximale est de 120 minutes';
+    }
+    return '';
   }
 }
