@@ -18,7 +18,7 @@
 }
 
 .header-card {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -27,26 +27,26 @@
   .mat-mdc-card-header {
     background: linear-gradient(135deg, #20c997 0%, #0dcaf0 100%);
     color: white;
-    padding: 16px 24px;
+    padding: 12px 20px;
     border-radius: 0;
     
     .mat-mdc-card-title {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 600;
       margin: 0;
       color: white;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       
       .mat-icon {
-        font-size: 24px;
+        font-size: 20px;
       }
     }
   }
   
   .mat-mdc-card-content {
-    padding: 20px 24px;
+    padding: 16px 20px;
     
     .search-field {
       width: 100%;

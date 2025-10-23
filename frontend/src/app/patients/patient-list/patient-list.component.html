@@ -9,11 +9,11 @@
     </mat-card-header>
     <mat-card-content>
       <div class="header-actions">
-        <mat-form-field class="search-field" appearance="outline">
-          <mat-label>Rechercher</mat-label>
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Rechercher un patient (nom, prénom, numéro...)</mat-label>
           <input matInput 
                  (keyup)="applyFilter($event)" 
-                 placeholder="N° patient, nom, prénom ou téléphone..." 
+                 placeholder="Rechercher..." 
                  #input>
           <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>

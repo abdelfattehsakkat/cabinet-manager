@@ -18,7 +18,7 @@
 }
 
 .header-card {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -27,26 +27,26 @@
   .mat-mdc-card-header {
     background: linear-gradient(135deg, #20c997 0%, #0dcaf0 100%);
     color: white;
-    padding: 16px 24px;
+    padding: 12px 20px;
     border-radius: 0;
     
     .mat-mdc-card-title {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 600;
       margin: 0;
       color: white;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       
       .mat-icon {
-        font-size: 24px;
+        font-size: 20px;
       }
     }
   }
   
   .mat-mdc-card-content {
-    padding: 20px 24px;
+    padding: 16px 20px;
     
     .header-actions {
       display: flex;
@@ -54,9 +54,9 @@
       align-items: center;
       gap: 16px;
       
-      .search-container {
+      .search-field {
         flex: 1;
-        max-width: 400px;
+        max-width: 500px;
         
         .mat-mdc-form-field {
           width: 100%;
@@ -238,11 +238,11 @@
                 }
                 
                 &.edit-button {
-                  color: #FF9800;
+                  color: #20c997;
                   
                   &:hover {
-                    background-color: rgba(255, 152, 0, 0.1);
-                    color: #F57C00;
+                    background-color: rgba(32, 201, 151, 0.1);
+                    color: #1aa085;
                   }
                 }
                 
@@ -561,12 +561,12 @@
       }
       
       &.treatments-button {
-        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        background: linear-gradient(135deg, #20c997 0%, #1aa085 100%);
         color: white;
         
         &:hover {
           transform: translateY(-1px);
-          box-shadow: 0 3px 8px rgba(23, 162, 184, 0.4);
+          box-shadow: 0 3px 8px rgba(32, 201, 151, 0.4);
         }
         
         .mat-icon {
