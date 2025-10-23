@@ -27,6 +27,7 @@ export class AuthService {
   public currentUser$ = this.currentUserSubject.asObservable();
   private tokenKey = 'auth_token';
   private userKey = 'current_user';
+  private tokenCheckInterval?: number;
 
   constructor(private http: HttpClient) {
     // Check for existing session on service initialization
@@ -55,6 +56,9 @@ export class AuthService {
           localStorage.setItem(this.userKey, JSON.stringify(user));
           this.currentUserSubject.next(user);
           
+          // Démarrer la vérification d'expiration du token
+          this.startTokenExpirationMonitoring();
+          
           return user;
         }),
         catchError(error => {
@@ -65,6 +69,7 @@ export class AuthService {
   }
 
   logout(): void {
+    this.stopTokenExpirationMonitoring();
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
     this.currentUserSubject.next(null);
@@ -114,11 +119,84 @@ export class AuthService {
       try {
         const user: User = JSON.parse(userJson);
         this.currentUserSubject.next(user);
+        // Démarrer la surveillance d'expiration pour une session existante
+        this.startTokenExpirationMonitoring();
       } catch (error) {
         console.error('Error parsing stored user data:', error);
         this.logout(); // Clear invalid data
       }
     }
+  }
+
+  // Méthodes de gestion de l'expiration du token
+  private startTokenExpirationMonitoring(): void {
+    // Arrêter toute surveillance existante
+    this.stopTokenExpirationMonitoring();
+    
+    // Vérifier toutes les minutes
+    this.tokenCheckInterval = window.setInterval(() => {
+      this.checkTokenExpiration();
+    }, 60000);
+  }
+
+  private stopTokenExpirationMonitoring(): void {
+    if (this.tokenCheckInterval) {
+      clearInterval(this.tokenCheckInterval);
+      this.tokenCheckInterval = undefined;
+    }
+  }
+
+  private checkTokenExpiration(): void {
+    const token = this.getAuthToken();
+    
+    if (!token) {
+      return;
+    }
+
+    const payload = this.parseJwt(token);
+    
+    if (payload && payload.exp) {
+      const currentTime = Math.floor(Date.now() / 1000);
+      const timeUntilExpiration = payload.exp - currentTime;
+      
+      // Si le token est expiré, déconnecter automatiquement
+      if (timeUntilExpiration <= 0) {
+        console.warn('Token expiré, déconnexion automatique');
+        this.logout();
+      }
+    }
+  }
+
+  private parseJwt(token: string): any {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+
+      return JSON.parse(jsonPayload);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Méthode publique pour obtenir le temps restant
+  getTimeUntilExpiration(): number | null {
+    const token = this.getAuthToken();
+    
+    if (!token) {
+      return null;
+    }
+
+    const payload = this.parseJwt(token);
+    
+    if (payload && payload.exp) {
+      const currentTime = Math.floor(Date.now() / 1000);
+      return payload.exp - currentTime;
+    }
+    
+    return null;
   }
 
   // API methods for user management

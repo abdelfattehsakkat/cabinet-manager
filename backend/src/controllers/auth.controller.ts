@@ -8,7 +8,18 @@ const generateToken = (id: string | Types.ObjectId): string => {
     if (!secret) {
         throw new Error('JWT_SECRET is not defined');
     }
-    return jwt.sign({ id: id.toString() }, secret);
+    
+    const expiresIn = process.env.JWT_EXPIRE || '24h'; // 24 heures par défaut
+    
+    return jwt.sign(
+        { id: id.toString() }, 
+        secret, 
+        { 
+            expiresIn: expiresIn,
+            issuer: 'cabinet-ai',
+            audience: 'cabinet-ai-users'
+        }
+    );
 };
 
 export const register = async (req: Request, res: Response): Promise<void> => {
