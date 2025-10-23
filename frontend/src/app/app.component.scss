@@ -29,6 +29,67 @@
     font-weight: 600;
     letter-spacing: 0.5px;
   }
+  
+  .user-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+      margin-right: 8px;
+      
+      .user-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: white;
+        line-height: 1.2;
+      }
+      
+      .user-role {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.8);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+      }
+    }
+    
+    .user-menu-button {
+      color: white;
+      padding: 4px;
+      
+      .user-avatar {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 700;
+        color: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      
+      &:hover .user-avatar {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.2) 100%);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+    }
+  }
+  
+  .header-spacer {
+    flex: 1;
+  }
 }
 
 .sidenav-container {
@@ -255,5 +316,138 @@
   
   .app-header .app-title {
     font-size: 18px;
+  }
+}
+
+// Styles pour le menu déroulant utilisateur
+::ng-deep .user-dropdown-menu {
+  .mat-mdc-menu-panel {
+    min-width: 280px !important;
+    max-width: 320px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+    border: 1px solid rgba(32, 201, 151, 0.1) !important;
+    overflow: hidden !important;
+  }
+  
+  .user-menu-header {
+    padding: 20px;
+    background: linear-gradient(135deg, #20c997 0%, #0dcaf0 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    
+    .menu-avatar {
+      width: 48px;
+      height: 48px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .user-details {
+      flex: 1;
+      
+      .user-name {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: white;
+      }
+      
+      .user-email {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 6px;
+      }
+      
+      .user-role-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: white;
+      }
+    }
+  }
+  
+  .mat-mdc-menu-item.menu-item {
+    padding: 12px 20px !important;
+    height: auto !important;
+    line-height: 1.4 !important;
+    transition: all 0.2s ease !important;
+    
+    mat-icon {
+      margin-right: 12px !important;
+      font-size: 20px !important;
+      width: 20px !important;
+      height: 20px !important;
+    }
+    
+    span {
+      font-size: 14px !important;
+      font-weight: 500 !important;
+    }
+    
+    &.profile-item {
+      mat-icon {
+        color: #6c5ce7 !important;
+      }
+      
+      &:hover {
+        background: rgba(108, 92, 231, 0.08) !important;
+        color: #6c5ce7 !important;
+      }
+    }
+    
+    &.settings-item {
+      mat-icon {
+        color: #a29bfe !important;
+      }
+      
+      &:hover {
+        background: rgba(162, 155, 254, 0.08) !important;
+        color: #a29bfe !important;
+      }
+    }
+    
+    &.help-item {
+      mat-icon {
+        color: #00b894 !important;
+      }
+      
+      &:hover {
+        background: rgba(0, 184, 148, 0.08) !important;
+        color: #00b894 !important;
+      }
+    }
+    
+    &.logout-item {
+      mat-icon {
+        color: #e17055 !important;
+      }
+      
+      &:hover {
+        background: rgba(225, 112, 85, 0.08) !important;
+        color: #e17055 !important;
+      }
+    }
+  }
+  
+  .mat-mdc-menu-divider {
+    margin: 8px 0 !important;
+    border-color: rgba(0, 0, 0, 0.08) !important;
   }
 }
