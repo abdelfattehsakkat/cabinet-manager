@@ -189,6 +189,12 @@ export class CalendarViewComponent implements OnInit {
   onDateSelected(date: Date) {
     this.selectedDate = date;
     this.loadAppointments();
+    
+    // Déplacer le calendrier FullCalendar vers la date sélectionnée
+    if (this.calendar && this.calendar.getApi) {
+      const calendarApi = this.calendar.getApi();
+      calendarApi.gotoDate(date);
+    }
   }
 
   getTimeSlots(): string[] {
