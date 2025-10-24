@@ -2,9 +2,9 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { SharedModule } from '../../shared/shared.module';
-import { PatientService, Patient } from '../../patients/services/patient.service';
-import { Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { PatientService, Patient, PaginatedResponse } from '../../patients/services/patient.service';
+import { Observable, of } from 'rxjs';
+import { map, startWith, debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 interface AppointmentDialogData {
@@ -101,7 +101,6 @@ export class AppointmentDialogComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadPatients();
     this.setupPatientAutocomplete();
     
     // If we have a patientId but no patientName, fetch the patient details
@@ -124,24 +123,31 @@ export class AppointmentDialogComponent implements OnInit {
     }
   }
 
-  private loadPatients() {
-    this.patientService.getPatients().subscribe(patients => {
-      this.patients = patients;
-      this.setupPatientAutocomplete();
-    });
-  }
-
   private setupPatientAutocomplete() {
     this.filteredPatients = this.appointmentForm.get('patientName')!.valueChanges.pipe(
       startWith(''),
-      map(value => this._filterPatients(value))
+      debounceTime(300), // Attendre 300ms après la dernière frappe
+      distinctUntilChanged(), // Ne rechercher que si la valeur a changé
+      switchMap((value: string) => this.searchPatients(value || ''))
     );
   }
 
-  private _filterPatients(value: string): Patient[] {
-    const filterValue = value.toLowerCase();
-    return this.patients.filter(patient => 
-      `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(filterValue)
+  private searchPatients(searchTerm: string): Observable<Patient[]> {
+    if (!searchTerm) {
+      return of([]); // Retourner un tableau vide si pas de terme de recherche
+    }
+    
+    if (searchTerm.length < 2) {
+      return of([]); // Retourner un tableau vide si moins de 2 caractères
+    }
+    
+    // Faire une recherche dynamique avec l'API (page=1, limit=15 pour l'autocomplete)
+    return this.patientService.searchPatients(1, 15, searchTerm).pipe(
+      map((response: PaginatedResponse) => response.patients), // Extraire le tableau patients de la réponse
+      catchError((error: any) => {
+        console.error('Error searching patients:', error);
+        return of([]); // Retourner un tableau vide en cas d'erreur
+      })
     );
   }
 
