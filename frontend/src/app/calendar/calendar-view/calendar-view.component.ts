@@ -367,7 +367,16 @@ export class CalendarViewComponent implements OnInit {
       next: (updated) => {
         console.log('Appointment moved:', updated);
         this.snackBar.open('Rendez-vous déplacé avec succès', 'Fermer', { duration: 3000 });
-        // Pas besoin de recharger, l'événement est déjà à la bonne place visuellement
+        
+        // Mettre à jour les données de l'événement dans FullCalendar
+        const updatedAppointmentData = { ...appointment, date: utcDate };
+        info.event.setExtendedProp('appointment', updatedAppointmentData);
+        
+        // Mettre à jour aussi dans notre tableau local
+        const index = this.appointments.findIndex(apt => apt._id === appointment._id);
+        if (index !== -1) {
+          this.appointments[index] = { ...this.appointments[index], date: utcDate };
+        }
       },
       error: (error) => {
         console.error('Error moving appointment:', error);
@@ -400,7 +409,16 @@ export class CalendarViewComponent implements OnInit {
       next: (updated) => {
         console.log('Appointment resized:', updated);
         this.snackBar.open('Durée du rendez-vous modifiée avec succès', 'Fermer', { duration: 3000 });
-        // Pas besoin de recharger, l'événement est déjà à la bonne taille visuellement
+        
+        // Mettre à jour les données de l'événement dans FullCalendar
+        const updatedAppointmentData = { ...appointment, date: utcDate, duration: newDuration };
+        info.event.setExtendedProp('appointment', updatedAppointmentData);
+        
+        // Mettre à jour aussi dans notre tableau local
+        const index = this.appointments.findIndex(apt => apt._id === appointment._id);
+        if (index !== -1) {
+          this.appointments[index] = { ...this.appointments[index], date: utcDate, duration: newDuration };
+        }
       },
       error: (error) => {
         console.error('Error resizing appointment:', error);
