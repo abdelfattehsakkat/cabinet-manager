@@ -67,7 +67,49 @@
 
           <mat-form-field class="time-field">
             <mat-label>Heure</mat-label>
-            <input matInput type="time" formControlName="time" required>
+            <mat-select formControlName="time" required>
+              <mat-option value="08:00">08:00</mat-option>
+              <mat-option value="08:15">08:15</mat-option>
+              <mat-option value="08:30">08:30</mat-option>
+              <mat-option value="08:45">08:45</mat-option>
+              <mat-option value="09:00">09:00</mat-option>
+              <mat-option value="09:15">09:15</mat-option>
+              <mat-option value="09:30">09:30</mat-option>
+              <mat-option value="09:45">09:45</mat-option>
+              <mat-option value="10:00">10:00</mat-option>
+              <mat-option value="10:15">10:15</mat-option>
+              <mat-option value="10:30">10:30</mat-option>
+              <mat-option value="10:45">10:45</mat-option>
+              <mat-option value="11:00">11:00</mat-option>
+              <mat-option value="11:15">11:15</mat-option>
+              <mat-option value="11:30">11:30</mat-option>
+              <mat-option value="11:45">11:45</mat-option>
+              <mat-option value="12:00">12:00</mat-option>
+              <mat-option value="12:15">12:15</mat-option>
+              <mat-option value="12:30">12:30</mat-option>
+              <mat-option value="12:45">12:45</mat-option>
+              <mat-option value="13:00">13:00</mat-option>
+              <mat-option value="13:15">13:15</mat-option>
+              <mat-option value="13:30">13:30</mat-option>
+              <mat-option value="13:45">13:45</mat-option>
+              <mat-option value="14:00">14:00</mat-option>
+              <mat-option value="14:15">14:15</mat-option>
+              <mat-option value="14:30">14:30</mat-option>
+              <mat-option value="14:45">14:45</mat-option>
+              <mat-option value="15:00">15:00</mat-option>
+              <mat-option value="15:15">15:15</mat-option>
+              <mat-option value="15:30">15:30</mat-option>
+              <mat-option value="15:45">15:45</mat-option>
+              <mat-option value="16:00">16:00</mat-option>
+              <mat-option value="16:15">16:15</mat-option>
+              <mat-option value="16:30">16:30</mat-option>
+              <mat-option value="16:45">16:45</mat-option>
+              <mat-option value="17:00">17:00</mat-option>
+              <mat-option value="17:15">17:15</mat-option>
+              <mat-option value="17:30">17:30</mat-option>
+              <mat-option value="17:45">17:45</mat-option>
+              <mat-option value="18:00">18:00</mat-option>
+            </mat-select>
             <mat-icon matPrefix>access_time</mat-icon>
             <mat-error *ngIf="appointmentForm.get('time')?.invalid">{{getErrorMessage('time')}}</mat-error>
           </mat-form-field>

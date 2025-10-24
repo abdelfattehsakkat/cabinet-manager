@@ -207,7 +207,11 @@ export class AppointmentDialogComponent implements OnInit {
     const utcDate = new Date(date);
     const localDate = new Date(utcDate.getTime() + utcDate.getTimezoneOffset() * 60000);
     
-    return localDate.toTimeString().substring(0, 5);
+    // Forcer le format 24h en français
+    const hours = localDate.getHours().toString().padStart(2, '0');
+    const minutes = localDate.getMinutes().toString().padStart(2, '0');
+    
+    return `${hours}:${minutes}`;
   }
 
   onSubmit() {
