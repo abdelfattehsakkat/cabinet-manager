@@ -30,7 +30,8 @@ export const getAppointments = async (req: Request, res: Response): Promise<void
         const appointmentsWithNames = appointments.map(appointment => {
             return {
                 ...appointment.toObject(),
-                patientName: `${appointment.patientFirstName} ${appointment.patientLastName}`
+                patientName: `${appointment.patientFirstName} ${appointment.patientLastName}`,
+                patientNumber: appointment.patientNumber || ''
             };
         });
             
@@ -57,7 +58,8 @@ export const getAppointment = async (req: Request, res: Response): Promise<void>
         // Add patient name to the appointment object using stored first and last name
         const appointmentWithName = {
             ...appointment.toObject(),
-            patientName: `${appointment.patientFirstName} ${appointment.patientLastName}`
+            patientName: `${appointment.patientFirstName} ${appointment.patientLastName}`,
+            patientNumber: appointment.patientNumber || ''
         };
         
         console.log('Found appointment:', appointmentWithName);
@@ -115,7 +117,7 @@ const isDoctorAvailable = async (doctorId: string, date: Date, duration: number,
 export const createAppointment = async (req: Request, res: Response): Promise<void> => {
     try {
         console.log('[POST] /appointments - Request body:', req.body);
-        const { patient, doctor, date, duration = 30 } = req.body;
+        const { patient, patientId, patientFirstName, patientLastName, doctor, date, duration = 30 } = req.body;
 
         const isAvailable = await isDoctorAvailable(doctor, date, duration);
         if (!isAvailable) {
@@ -124,22 +126,46 @@ export const createAppointment = async (req: Request, res: Response): Promise<vo
             return;
         }
 
-        // Fetch patient details to get first name and last name
-        const Patient = mongoose.model('Patient');
-        const patientDetails = await Patient.findById(patient);
-        
-        if (!patientDetails) {
-            console.log('Patient not found');
-            res.status(400).json({ message: 'Patient not found' });
-            return;
-        }
-        
-        // Add patient first name and last name to the appointment
-        const appointmentData = {
+        let appointmentData: any = {
             ...req.body,
-            patientFirstName: patientDetails.firstName,
-            patientLastName: patientDetails.lastName
+            doctor,
+            date,
+            duration
         };
+
+        // Check if we have an existing patient or a new patient
+        const actualPatientId = patient || patientId;
+        
+        if (actualPatientId) {
+            // Existing patient - fetch details from database
+            const Patient = mongoose.model('Patient');
+            const patientDetails = await Patient.findById(actualPatientId);
+            
+            if (!patientDetails) {
+                console.log('Patient not found');
+                res.status(400).json({ message: 'Patient not found' });
+                return;
+            }
+            
+            appointmentData.patient = actualPatientId;
+            appointmentData.patientFirstName = patientDetails.firstName;
+            appointmentData.patientLastName = patientDetails.lastName;
+            appointmentData.patientNumber = patientDetails.patientNumber || '';
+        } else {
+            // New patient - use provided names
+            if (!patientFirstName || !patientLastName) {
+                console.log('Patient first name and last name are required for new patients');
+                res.status(400).json({ message: 'Patient first name and last name are required' });
+                return;
+            }
+            
+            appointmentData.patientFirstName = patientFirstName;
+            appointmentData.patientLastName = patientLastName;
+            appointmentData.patientNumber = ''; // Pas de numéro de fiche pour les nouveaux patients
+            // No patient ID for new patients
+            delete appointmentData.patient;
+            delete appointmentData.patientId;
+        }
 
         const appointment = await Appointment.create(appointmentData) as IAppointment;
         console.log('Created appointment:', appointment);

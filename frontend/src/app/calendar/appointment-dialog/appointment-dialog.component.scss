@@ -65,6 +65,42 @@ mat-dialog-actions {
   }
 }
 
+// Patient option styling
+.patient-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+
+  .patient-name {
+    font-weight: 500;
+  }
+
+  .patient-number {
+    font-size: 0.85em;
+    color: #666;
+    background-color: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 12px;
+  }
+}
+
+// Status icons in hints
+.status-icon {
+  font-size: 16px;
+  margin-right: 4px;
+  vertical-align: middle;
+  color: #2e7d32;
+}
+
+mat-hint {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  margin-top: 4px;
+  color: #2e7d32;
+}
+
 @media (max-width: 600px) {
   :host {
     min-width: 320px;

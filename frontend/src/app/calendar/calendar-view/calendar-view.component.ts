@@ -233,14 +233,21 @@ export class CalendarViewComponent implements OnInit {
       if (result) {
         console.log('Dialog result:', result);
         const appointment: Partial<Appointment> = {
-          patient: result.patientId,
           doctor: this.currentDoctor,
           date: result.date,
           duration: result.duration,
           type: result.type,
           notes: result.notes,
-          status: 'scheduled'
+          status: 'scheduled',
+          patientFirstName: result.patientFirstName,
+          patientLastName: result.patientLastName,
+          patientNumber: result.patientNumber || ''
         };
+
+        // Only include patient ID if it exists (for existing patients)
+        if (result.patientId) {
+          appointment.patient = result.patientId;
+        }
 
         this.appointmentService.createAppointment(appointment).subscribe({
           next: (createdAppointment) => {
@@ -267,13 +274,19 @@ export class CalendarViewComponent implements OnInit {
       if (result) {
         console.log('Dialog result:', result);
         const updatedAppointment: Partial<Appointment> = {
-          patient: result.patientId,
           doctor: this.currentDoctor,
           date: result.date,
           duration: result.duration,
           type: result.type,
-          notes: result.notes
+          notes: result.notes,
+          patientFirstName: result.patientFirstName,
+          patientLastName: result.patientLastName
         };
+
+        // Only include patient ID if it exists (for existing patients)
+        if (result.patientId) {
+          updatedAppointment.patient = result.patientId;
+        }
 
         this.appointmentService.updateAppointment(appointment._id!, updatedAppointment).subscribe({
           next: (updated) => {

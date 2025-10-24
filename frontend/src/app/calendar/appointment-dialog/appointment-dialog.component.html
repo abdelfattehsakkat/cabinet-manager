@@ -4,13 +4,32 @@
   <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
     <mat-form-field class="full-width">
       <mat-label>Patient</mat-label>
-      <input type="text" matInput formControlName="patientName" [matAutocomplete]="auto" required>
-      <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayPatientFn" (optionSelected)="onPatientSelected($event.option.value)">
+      <input type="text" 
+             matInput 
+             formControlName="patientName" 
+             [matAutocomplete]="auto" 
+             (input)="onPatientInput()"
+             placeholder="Tapez le nom du patient ou créez un nouveau patient"
+             required>
+      <mat-autocomplete #auto="matAutocomplete" 
+                        [displayWith]="displayPatient.bind(this)" 
+                        (optionSelected)="onPatientSelected($event.option.value)">
         <mat-option *ngFor="let patient of filteredPatients | async" [value]="patient">
-          {{patient.firstName}} {{patient.lastName}}
+          <div class="patient-option">
+            <span class="patient-name">{{patient.firstName}} {{patient.lastName}}</span>
+            <span class="patient-number" *ngIf="patient.patientNumber">N° {{patient.patientNumber}}</span>
+          </div>
         </mat-option>
       </mat-autocomplete>
-      <mat-error *ngIf="appointmentForm.get('patientId')?.invalid">{{getErrorMessage('patientId')}}</mat-error>
+      <mat-hint *ngIf="selectedPatient">
+        <mat-icon class="status-icon">person</mat-icon>
+        Patient existant - N° {{selectedPatient.patientNumber}}
+      </mat-hint>
+      <mat-hint *ngIf="isNewPatient && appointmentForm.get('patientName')?.value">
+        <mat-icon class="status-icon">person_add</mat-icon>
+        Nouveau patient
+      </mat-hint>
+      <mat-error *ngIf="appointmentForm.get('patientName')?.invalid">{{getErrorMessage('patientName')}}</mat-error>
     </mat-form-field>
 
     <div class="form-row">

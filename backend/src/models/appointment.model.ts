@@ -1,10 +1,11 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IAppointment extends Document {
-    patient: mongoose.Types.ObjectId;
+    patient?: mongoose.Types.ObjectId;
     doctor: mongoose.Types.ObjectId;
     patientFirstName: string;
     patientLastName: string;
+    patientNumber?: string;
     date: Date;
     duration: number; // in minutes
     status: 'scheduled' | 'completed' | 'cancelled' | 'noShow';
@@ -16,7 +17,7 @@ const appointmentSchema = new Schema({
     patient: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Patient',
-        required: true
+        required: false
     },
     doctor: {
         type: mongoose.Schema.Types.ObjectId,
@@ -30,6 +31,10 @@ const appointmentSchema = new Schema({
     patientLastName: {
         type: String,
         required: true
+    },
+    patientNumber: {
+        type: String,
+        required: false
     },
     date: {
         type: Date,

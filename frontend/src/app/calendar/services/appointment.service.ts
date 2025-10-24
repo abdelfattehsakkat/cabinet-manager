@@ -5,7 +5,7 @@ import { tap } from 'rxjs/operators';
 
 export interface Appointment {
   _id?: string;
-  patient: string | {
+  patient?: string | {
     _id: string;
     firstName: string;
     lastName: string;
@@ -20,6 +20,7 @@ export interface Appointment {
   patientFirstName: string;
   patientLastName: string;
   patientName?: string;
+  patientNumber?: string;
   date: Date;
   duration: number;
   status: 'scheduled' | 'completed' | 'cancelled' | 'noShow';

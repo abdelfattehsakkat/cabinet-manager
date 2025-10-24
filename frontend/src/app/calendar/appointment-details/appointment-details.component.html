@@ -5,6 +5,10 @@
       <strong>Patient:</strong>
       <span>{{getPatientName()}}</span>
     </div>
+    <div class="detail-row" *ngIf="data.appointment.patientNumber">
+      <strong>N° de fiche:</strong>
+      <span>{{data.appointment.patientNumber}}</span>
+    </div>
     <div class="detail-row">
       <strong>Date:</strong>
       <span>{{data.appointment.date | date:'dd/MM/yyyy HH:mm'}}</span>

@@ -20,9 +20,10 @@ interface AppointmentDialogData {
   imports: [SharedModule, MatAutocompleteModule]
 })
 export class AppointmentDialogComponent implements OnInit {
-  appointmentForm: FormGroup;
-  patients: Patient[] = [];
+  appointmentForm!: FormGroup;
   filteredPatients: Observable<Patient[]> = new Observable<Patient[]>();
+  selectedPatient: Patient | null = null;
+  isNewPatient: boolean = false;
   
   appointmentTypes = [
     'Consultation',
@@ -43,37 +44,30 @@ export class AppointmentDialogComponent implements OnInit {
     const defaultAppointment = {
       patientId: '',
       patientName: '',
-      date: data.date,
+      date: this.data.date,
+      time: '',
       duration: 30,
-      type: 'Consultation générale',
+      type: '',
       notes: ''
     };
 
-    const appointment = data.appointment || defaultAppointment;
-    console.log('Appointment data:', appointment);
+    const appointment = this.data.appointment || defaultAppointment;
+    this.initForm(appointment);
+  }
+
+  private initForm(appointment: any) {
+    console.log('Raw appointment data:', appointment);
     
-    // Extract patient information properly
-    let patientId = '';
-    let patientName = '';
+    // Extract patient information
+    let patientId = appointment.patientId || appointment.patient?._id || appointment.patient || '';
+    let patientName = appointment.patientName || '';
     
-    if (appointment) {
-      // Handle case where we have a patient ID directly
-      if (appointment.patient && typeof appointment.patient === 'string') {
-        patientId = appointment.patient;
-      } else if (appointment.patientId) {
-        patientId = appointment.patientId;
-      }
-      
-      // Set patient name from patientName field if it exists
-      if (appointment.patientName) {
-        patientName = appointment.patientName;
-      } 
-      // Try to extract name from patient object if it exists
-      else if (appointment.patient && typeof appointment.patient === 'object') {
-        const patient = appointment.patient as any;
-        if (patient.firstName && patient.lastName) {
-          patientName = `${patient.firstName} ${patient.lastName}`;
-        }
+    // If patientName is undefined or "undefined undefined", try to construct it
+    if (!patientName || patientName === 'undefined undefined') {
+      const firstName = appointment.patientFirstName || appointment.patient?.firstName || '';
+      const lastName = appointment.patientLastName || appointment.patient?.lastName || '';
+      if (firstName || lastName) {
+        patientName = `${firstName} ${lastName}`.trim();
       }
     }
     
@@ -90,14 +84,17 @@ export class AppointmentDialogComponent implements OnInit {
     }
 
     this.appointmentForm = this.fb.group({
-      patientId: [patientId, [Validators.required]],
-      patientName: [patientName],
+      patientId: [patientId], // Optional - only required for existing patients
+      patientName: [patientName, [Validators.required]], // Required for all appointments
       date: [appointmentDate, [Validators.required]],
       time: [this.getTimeString(appointment.date), [Validators.required]],
       duration: [appointment.duration, [Validators.required, Validators.min(15), Validators.max(120)]],
       type: [appointment.type || 'Consultation générale', [Validators.required]],
       notes: [appointment.notes]
     });
+
+    // Set patient selection mode based on whether we have a patientId
+    this.isNewPatient = !patientId;
   }
 
   ngOnInit() {
@@ -115,60 +112,73 @@ export class AppointmentDialogComponent implements OnInit {
           this.appointmentForm.patchValue({
             patientName: `${patient.firstName} ${patient.lastName}`
           });
+          this.selectedPatient = patient;
         },
         error: (error) => {
           console.error('Error fetching patient details:', error);
+          // If we can't fetch patient details, allow user to edit the name
+          this.appointmentForm.patchValue({
+            patientName: ''
+          });
         }
       });
     }
   }
 
   private setupPatientAutocomplete() {
-    this.filteredPatients = this.appointmentForm.get('patientName')!.valueChanges.pipe(
-      startWith(''),
-      debounceTime(300), // Attendre 300ms après la dernière frappe
-      distinctUntilChanged(), // Ne rechercher que si la valeur a changé
-      switchMap((value: string) => this.searchPatients(value || ''))
-    );
+    const patientNameControl = this.appointmentForm.get('patientName');
+    if (patientNameControl) {
+      this.filteredPatients = patientNameControl.valueChanges.pipe(
+        startWith(''),
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap(value => {
+          if (!value || typeof value !== 'string' || value.length < 2) {
+            return of([] as Patient[]);
+          }
+          return this.searchPatients(value);
+        })
+      );
+    }
   }
 
-  private searchPatients(searchTerm: string): Observable<Patient[]> {
-    if (!searchTerm) {
-      return of([]); // Retourner un tableau vide si pas de terme de recherche
+  private searchPatients(query: string): Observable<Patient[]> {
+    if (!query || query.length < 2) {
+      return of([]);
     }
-    
-    if (searchTerm.length < 2) {
-      return of([]); // Retourner un tableau vide si moins de 2 caractères
-    }
-    
-    // Faire une recherche dynamique avec l'API (page=1, limit=15 pour l'autocomplete)
-    return this.patientService.searchPatients(1, 15, searchTerm).pipe(
-      map((response: PaginatedResponse) => response.patients), // Extraire le tableau patients de la réponse
-      catchError((error: any) => {
+
+    return this.patientService.searchPatients(1, 10, query).pipe(
+      map((response: PaginatedResponse) => response.patients),
+      catchError((error) => {
         console.error('Error searching patients:', error);
-        return of([]); // Retourner un tableau vide en cas d'erreur
+        return of([]);
       })
     );
   }
 
-  onPatientSelected(patient: Patient) {
-    console.log('Patient selected:', patient);
-    if (patient && patient._id) {
-      this.appointmentForm.patchValue({
-        patientId: patient._id,
-        patientName: `${patient.firstName} ${patient.lastName}`
-      });
-      console.log('Form values after patient selection:', this.appointmentForm.value);
-    }
+  onPatientSelected(patient: Patient): void {
+    this.selectedPatient = patient;
+    this.isNewPatient = false;
+    this.appointmentForm.patchValue({
+      patientId: patient._id,
+      patientName: `${patient.firstName} ${patient.lastName}`
+    });
   }
 
-  displayPatientFn(patient: Patient | string): string {
-    // Handle case when input is already a string
+  onPatientInput(): void {
+    // If user is typing a new name, reset selected patient
+    this.selectedPatient = null;
+    this.isNewPatient = true;
+    this.appointmentForm.patchValue({
+      patientId: null
+    });
+  }
+
+  displayPatient(patient: Patient | string): string {
     if (typeof patient === 'string') {
       return patient;
     }
     
-    // Handle case when patient is null or undefined
     if (!patient) {
       return '';
     }
@@ -210,20 +220,25 @@ export class AppointmentDialogComponent implements OnInit {
       // Convert to UTC
       const dateUTC = new Date(appointmentDate.getTime() - appointmentDate.getTimezoneOffset() * 60000);
 
-      // Find the selected patient to get first name and last name
-      const patientId = formValue.patientId;
-      const selectedPatient = this.patients.find(patient => patient._id === patientId);
-      
-      // Include patient first name and last name in the result
+      // Prepare the result
       const result = {
         ...formValue,
         date: dateUTC
       };
-      
-      // Add patient first and last name if found
-      if (selectedPatient) {
-        result.patientFirstName = selectedPatient.firstName;
-        result.patientLastName = selectedPatient.lastName;
+
+      // If we have a selected patient, include their details
+      if (this.selectedPatient) {
+        result.patientFirstName = this.selectedPatient.firstName;
+        result.patientLastName = this.selectedPatient.lastName;
+        result.patientNumber = this.selectedPatient.patientNumber || '';
+      } else if (formValue.patientName) {
+        // For new patients, extract first and last name from the input
+        const nameParts = formValue.patientName.trim().split(' ');
+        result.patientFirstName = nameParts[0] || '';
+        result.patientLastName = nameParts.slice(1).join(' ') || '';
+        result.patientNumber = ''; // Pas de numéro de fiche pour les nouveaux patients
+        // No patientId for new patients
+        result.patientId = null;
       }
 
       this.dialogRef.close(result);
@@ -238,7 +253,7 @@ export class AppointmentDialogComponent implements OnInit {
     const field = this.appointmentForm.get(fieldName);
     if (field?.hasError('required')) {
       switch (fieldName) {
-        case 'patientId': return 'Le patient est requis';
+        case 'patientName': return 'Le nom du patient est requis';
         case 'date': return 'La date est requise';
         case 'time': return 'L\'heure est requise';
         case 'duration': return 'La durée est requise';
