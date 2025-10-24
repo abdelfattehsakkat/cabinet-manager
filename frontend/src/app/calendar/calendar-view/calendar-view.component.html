@@ -1,43 +1,23 @@
 <div class="calendar-container">
-  <div class="calendar-header">
-    <h1>Calendrier des Rendez-vous</h1>
-    <div class="header-controls">
-      <mat-form-field>
-        <mat-label>Sélectionner une date</mat-label>
-        <input matInput [matDatepicker]="picker" [value]="selectedDate" (dateChange)="onDateSelected($event.value)">
-        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker>
-      </mat-form-field>
-      <button mat-raised-button color="primary" class="add-appointment-header-button" (click)="addAppointment()">
-        <mat-icon>add</mat-icon>
-        Nouveau RDV
-      </button>
-    </div>
-  </div>
-
-  <div class="schedule-container mat-elevation-z2">
-    <div class="time-slots">
-      <div class="time-slot" *ngFor="let slot of getTimeSlots()">
-        <div class="time-label">{{slot}}</div>
-        <div class="appointment-slot" 
-             [class.has-appointment]="getAppointmentForSlot(slot)"
-             (click)="getAppointmentForSlot(slot) ? showAppointmentDetails(getAppointmentForSlot(slot)!) : addAppointment(slot)">
-          <div *ngIf="getAppointmentForSlot(slot) as appointment" class="appointment-card">
-            <div class="appointment-header">
-              <strong>{{appointment.patientName}}</strong>
-              <span class="appointment-type">{{appointment.type}}</span>
-              <button mat-icon-button color="warn" class="delete-button" (click)="$event.stopPropagation(); deleteAppointment(appointment)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </div>
-            <div class="appointment-details" *ngIf="appointment.notes">
-              {{appointment.notes}}
-            </div>
-          </div>
-        </div>
+  <!-- Header Card -->
+  <mat-card class="header-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>calendar_today</mat-icon>
+        Calendrier des Rendez-vous
+      </mat-card-title>
+      <div class="header-actions">
+        <mat-form-field appearance="outline" class="date-field">
+          <input matInput [matDatepicker]="picker" [value]="selectedDate" (dateChange)="onDateSelected($event.value)" placeholder="Sélectionner une date">
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+        <button mat-fab color="primary" class="add-fab" (click)="addAppointment()" matTooltip="Nouveau rendez-vous">
+          <mat-icon>add</mat-icon>
+        </button>
       </div>
-    </div>
-  </div>
+    </mat-card-header>
+  </mat-card>
 
   <full-calendar #calendar [options]="calendarOptions">
   </full-calendar>

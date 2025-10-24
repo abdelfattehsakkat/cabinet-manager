@@ -7,8 +7,11 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatCardModule } from '@angular/material/card';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule } from '@angular/forms';
 import { AppointmentService, Appointment } from '../services/appointment.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -30,8 +33,11 @@ import { PatientService } from '../../patients/services/patient.service';
     MatButtonModule,
     MatIconModule,
     MatDatepickerModule,
+    MatNativeDateModule,
     MatFormFieldModule,
     MatInputModule,
+    MatCardModule,
+    MatTooltipModule,
     FormsModule,
     MatSnackBarModule,
     FullCalendarModule
@@ -48,6 +54,7 @@ export class CalendarViewComponent implements OnInit {
     locale: frLocale,
     initialView: 'timeGridWeek',
     weekends: true,
+    hiddenDays: [0], // 0 = Dimanche
     editable: true,
     selectable: true,
     selectMirror: true,
@@ -65,9 +72,9 @@ export class CalendarViewComponent implements OnInit {
       day: 'Jour',
       list: 'Liste'
     },
-    slotMinTime: '08:00:00',
-    slotMaxTime: '19:00:00',
-    slotDuration: '00:30:00',
+    slotMinTime: '09:00:00',
+    slotMaxTime: '17:00:00',
+    slotDuration: '00:15:00',
     slotLabelInterval: '01:00:00',
     allDaySlot: false,
     nowIndicator: true,
@@ -195,34 +202,6 @@ export class CalendarViewComponent implements OnInit {
       const calendarApi = this.calendar.getApi();
       calendarApi.gotoDate(date);
     }
-  }
-
-  getTimeSlots(): string[] {
-    const slots = [];
-    let hour = 9; // Start at 9 AM
-    let minutes = 0;
-    
-    while (hour < 18) { // End at 6 PM
-      slots.push(`${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
-      minutes += 30;
-      if (minutes === 60) {
-        minutes = 0;
-        hour += 1;
-      }
-    }
-    
-    return slots;
-  }
-
-  getAppointmentForSlot(timeSlot: string): Appointment | undefined {
-    const [hours, minutes] = timeSlot.split(':').map(Number);
-    return this.appointments.find(appointment => {
-      // Convertir de UTC vers local pour la comparaison
-      const utcDate = new Date(appointment.date);
-      const localDate = new Date(utcDate.getTime() + utcDate.getTimezoneOffset() * 60000);
-      return localDate.getHours() === hours && 
-             Math.floor(localDate.getMinutes() / 30) * 30 === minutes;
-    });
   }
 
   addAppointment(timeSlot?: string) {
