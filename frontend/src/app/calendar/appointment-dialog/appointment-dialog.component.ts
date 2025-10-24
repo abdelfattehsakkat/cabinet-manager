@@ -79,10 +79,20 @@ export class AppointmentDialogComponent implements OnInit {
     
     console.log('Extracted patient info:', { patientId, patientName });
 
+    // S'assurer que la date est un objet Date correct
+    let appointmentDate = appointment.date;
+    if (typeof appointmentDate === 'string') {
+      // Convertir de UTC vers local pour l'affichage dans le formulaire
+      const utcDate = new Date(appointmentDate);
+      appointmentDate = new Date(utcDate.getTime() + utcDate.getTimezoneOffset() * 60000);
+    } else if (!(appointmentDate instanceof Date)) {
+      appointmentDate = new Date();
+    }
+
     this.appointmentForm = this.fb.group({
       patientId: [patientId, [Validators.required]],
       patientName: [patientName],
-      date: [appointment.date, [Validators.required]],
+      date: [appointmentDate, [Validators.required]],
       time: [this.getTimeString(appointment.date), [Validators.required]],
       duration: [appointment.duration, [Validators.required, Validators.min(15), Validators.max(120)]],
       type: [appointment.type || 'Consultation générale', [Validators.required]],
@@ -166,8 +176,22 @@ export class AppointmentDialogComponent implements OnInit {
     return patient._id ? `Patient ${patient._id}` : '';
   }
 
-  private getTimeString(date: Date): string {
-    return date.toTimeString().substring(0, 5);
+  private getTimeString(dateInput: Date | string): string {
+    if (!dateInput) return '';
+    
+    // S'assurer qu'on a un objet Date
+    const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+    
+    // Vérifier que c'est une date valide
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+    
+    // Appliquer la correction de fuseau horaire si nécessaire (UTC vers local)
+    const utcDate = new Date(date);
+    const localDate = new Date(utcDate.getTime() + utcDate.getTimezoneOffset() * 60000);
+    
+    return localDate.toTimeString().substring(0, 5);
   }
 
   onSubmit() {
