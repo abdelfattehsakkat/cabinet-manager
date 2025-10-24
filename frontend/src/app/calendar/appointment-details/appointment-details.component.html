@@ -1,37 +1,67 @@
 <div class="appointment-details-dialog">
-  <h2 mat-dialog-title>Détails du Rendez-vous</h2>
-  <mat-dialog-content>
-    <div class="detail-row">
-      <strong>Patient:</strong>
-      <span>{{getPatientName()}}</span>
+  <h2 mat-dialog-title class="dialog-title">
+    <mat-icon class="title-icon">event</mat-icon>
+    Détails du Rendez-vous
+  </h2>
+  <mat-dialog-content class="dialog-content">
+    <!-- Patient Info Section -->
+    <div class="patient-section">
+      <div class="patient-info">
+        <div class="patient-name">
+          <mat-icon class="patient-icon">person</mat-icon>
+          <span class="name">{{getPatientName()}}</span>
+        </div>
+        <div class="patient-number-tag" *ngIf="data.appointment.patientNumber">
+          <mat-icon class="tag-icon">badge</mat-icon>
+          <span class="number">{{data.appointment.patientNumber}}</span>
+        </div>
+      </div>
     </div>
-    <div class="detail-row" *ngIf="data.appointment.patientNumber">
-      <strong>N° de fiche:</strong>
-      <span>{{data.appointment.patientNumber}}</span>
-    </div>
-    <div class="detail-row">
-      <strong>Date:</strong>
-      <span>{{data.appointment.date | date:'dd/MM/yyyy HH:mm'}}</span>
-    </div>
-    <div class="detail-row">
-      <strong>Durée:</strong>
-      <span>{{data.appointment.duration}} minutes</span>
-    </div>
-    <div class="detail-row">
-      <strong>Type:</strong>
-      <span>{{data.appointment.type}}</span>
-    </div>
-    <div class="detail-row" *ngIf="data.appointment.notes">
-      <strong>Notes:</strong>
-      <span>{{data.appointment.notes}}</span>
+
+    <!-- Appointment Details -->
+    <div class="appointment-info">
+      <div class="info-card">
+        <mat-icon class="info-icon">schedule</mat-icon>
+        <div class="info-content">
+          <span class="info-label">Date & Heure</span>
+          <span class="info-value">{{data.appointment.date | date:'dd/MM/yyyy HH:mm'}}</span>
+        </div>
+      </div>
+      
+      <div class="info-card">
+        <mat-icon class="info-icon">timer</mat-icon>
+        <div class="info-content">
+          <span class="info-label">Durée</span>
+          <span class="info-value">{{data.appointment.duration}} minutes</span>
+        </div>
+      </div>
+      
+      <div class="info-card">
+        <mat-icon class="info-icon">medical_services</mat-icon>
+        <div class="info-content">
+          <span class="info-label">Type</span>
+          <span class="info-value">{{data.appointment.type}}</span>
+        </div>
+      </div>
+      
+      <div class="info-card" *ngIf="data.appointment.notes">
+        <mat-icon class="info-icon">note</mat-icon>
+        <div class="info-content">
+          <span class="info-label">Notes</span>
+          <span class="info-value notes-text">{{data.appointment.notes}}</span>
+        </div>
+      </div>
     </div>
   </mat-dialog-content>
-  <mat-dialog-actions align="end">
-    <button mat-raised-button color="primary" (click)="edit()">Modifier</button>
-    <button mat-button color="warn" (click)="deleteAppointment()">
-      <mat-icon>delete</mat-icon>
-      Supprimer RDV
+  <mat-dialog-actions class="dialog-actions">
+    <button mat-raised-button color="primary" class="action-btn" (click)="edit()">
+      <mat-icon>edit</mat-icon>
+      Modifier
     </button>
-    <button mat-button (click)="close()">Fermer</button>
+    <button mat-button color="warn" class="action-btn delete-btn" (click)="deleteAppointment()">
+      <mat-icon>delete</mat-icon>
+      Supprimer
+    </button>
+    <button mat-button class="action-btn" (click)="close()">Fermer</button>
   </mat-dialog-actions>
 </div>
