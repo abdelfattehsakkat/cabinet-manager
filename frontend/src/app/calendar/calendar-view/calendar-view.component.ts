@@ -74,7 +74,8 @@ export class CalendarViewComponent implements OnInit {
     eventDisplay: 'block',
     eventClick: this.handleEventClick.bind(this),
     eventDrop: this.handleEventDrop.bind(this),
-    eventResize: this.handleEventResize.bind(this)
+    eventResize: this.handleEventResize.bind(this),
+    select: this.handleDateSelect.bind(this)
   };
 
   constructor(
@@ -361,6 +362,36 @@ export class CalendarViewComponent implements OnInit {
   handleEventClick(info: any) {
     const appointment = info.event.extendedProps.appointment;
     this.showAppointmentDetails(appointment);
+  }
+
+  handleDateSelect(info: any) {
+    // Gérer la sélection d'un créneau (cliquer-glisser ou clic simple)
+    const selectedDate = new Date(info.start);
+    this.openAppointmentDialog(selectedDate);
+    
+    // Désélectionner après avoir ouvert le dialog
+    const calendarApi = this.calendar.getApi();
+    calendarApi.unselect();
+  }
+
+  private openAppointmentDialog(selectedDate: Date) {
+    // FullCalendar donne une date en UTC, il faut la convertir en heure locale
+    const utcDate = new Date(selectedDate);
+    const localDate = new Date(utcDate.getTime() - utcDate.getTimezoneOffset() * 60000);
+    
+    const hours = localDate.getHours();
+    const minutes = localDate.getMinutes();
+    const timeSlot = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    
+    console.log('Selected date from FullCalendar (UTC):', selectedDate);
+    console.log('Converted to local date:', localDate);
+    console.log('Extracted time slot:', timeSlot);
+    
+    // Mettre à jour la date sélectionnée pour le composant
+    this.selectedDate = localDate;
+    
+    // Ouvrir le dialog avec la date et l'heure pré-remplies
+    this.addAppointment(timeSlot);
   }
 
   handleEventDrop(info: any) {
