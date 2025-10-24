@@ -46,7 +46,7 @@ export class CalendarViewComponent implements OnInit {
   calendarOptions: any = {
     plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
     locale: frLocale,
-    initialView: 'dayGridMonth',
+    initialView: 'timeGridWeek',
     weekends: true,
     editable: true,
     selectable: true,

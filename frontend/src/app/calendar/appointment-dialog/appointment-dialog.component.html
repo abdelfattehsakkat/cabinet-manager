@@ -1,83 +1,134 @@
-<h2 mat-dialog-title>{{data.appointment ? 'Modifier le Rendez-vous' : 'Nouveau Rendez-vous'}}</h2>
+<div class="appointment-dialog">
+  <div class="dialog-header">
+    <mat-icon class="header-icon">{{data.appointment ? 'edit_calendar' : 'add_box'}}</mat-icon>
+    <h2 mat-dialog-title>{{data.appointment ? 'Modifier le Rendez-vous' : 'Nouveau Rendez-vous'}}</h2>
+  </div>
 
-<mat-dialog-content>
-  <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
-    <mat-form-field class="full-width">
-      <mat-label>Patient</mat-label>
-      <input type="text" 
-             matInput 
-             formControlName="patientName" 
-             [matAutocomplete]="auto" 
-             (input)="onPatientInput()"
-             placeholder="Tapez le nom du patient ou créez un nouveau patient"
-             required>
-      <mat-autocomplete #auto="matAutocomplete" 
-                        [displayWith]="displayPatient.bind(this)" 
-                        (optionSelected)="onPatientSelected($event.option.value)">
-        <mat-option *ngFor="let patient of filteredPatients | async" [value]="patient">
-          <div class="patient-option">
-            <span class="patient-name">{{patient.firstName}} {{patient.lastName}}</span>
-            <span class="patient-number" *ngIf="patient.patientNumber">N° {{patient.patientNumber}}</span>
-          </div>
-        </mat-option>
-      </mat-autocomplete>
-      <mat-hint *ngIf="selectedPatient">
-        <mat-icon class="status-icon">person</mat-icon>
-        Patient existant - N° {{selectedPatient.patientNumber}}
-      </mat-hint>
-      <mat-hint *ngIf="isNewPatient && appointmentForm.get('patientName')?.value">
-        <mat-icon class="status-icon">person_add</mat-icon>
-        Nouveau patient
-      </mat-hint>
-      <mat-error *ngIf="appointmentForm.get('patientName')?.invalid">{{getErrorMessage('patientName')}}</mat-error>
-    </mat-form-field>
+  <mat-dialog-content class="dialog-content">
+    <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
+      <!-- Section Patient -->
+      <div class="form-section">
+        <div class="section-header">
+          <mat-icon>person</mat-icon>
+          <span>Informations Patient</span>
+        </div>
+        
+        <mat-form-field class="full-width patient-field">
+          <mat-label>Patient</mat-label>
+          <input type="text" 
+                 matInput 
+                 formControlName="patientName" 
+                 [matAutocomplete]="auto" 
+                 (input)="onPatientInput()"
+                 placeholder="Tapez le nom du patient ou créez un nouveau patient"
+                 required>
+          <mat-icon matPrefix>search</mat-icon>
+          <mat-autocomplete #auto="matAutocomplete" 
+                            [displayWith]="displayPatient.bind(this)" 
+                            (optionSelected)="onPatientSelected($event.option.value)">
+            <mat-option *ngFor="let patient of filteredPatients | async" [value]="patient">
+              <div class="patient-option">
+                <div class="patient-info">
+                  <span class="patient-name">{{patient.firstName}} {{patient.lastName}}</span>
+                  <span class="patient-number" *ngIf="patient.patientNumber">N° {{patient.patientNumber}}</span>
+                </div>
+                <mat-icon class="patient-icon">person</mat-icon>
+              </div>
+            </mat-option>
+          </mat-autocomplete>
+          <mat-hint *ngIf="selectedPatient" class="success-hint">
+            <mat-icon class="status-icon success">check_circle</mat-icon>
+            Patient existant - N° {{selectedPatient.patientNumber}}
+          </mat-hint>
+          <mat-hint *ngIf="isNewPatient && appointmentForm.get('patientName')?.value" class="info-hint">
+            <mat-icon class="status-icon info">person_add</mat-icon>
+            Nouveau patient
+          </mat-hint>
+          <mat-error *ngIf="appointmentForm.get('patientName')?.invalid">{{getErrorMessage('patientName')}}</mat-error>
+        </mat-form-field>
+      </div>
 
-    <div class="form-row">
-      <mat-form-field>
-        <mat-label>Date</mat-label>
-        <input matInput [matDatepicker]="picker" formControlName="date" required>
-        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker>
-        <mat-error *ngIf="appointmentForm.get('date')?.invalid">{{getErrorMessage('date')}}</mat-error>
-      </mat-form-field>
+      <!-- Section Rendez-vous -->
+      <div class="form-section">
+        <div class="section-header">
+          <mat-icon>schedule</mat-icon>
+          <span>Planification</span>
+        </div>
+        
+        <div class="form-row">
+          <mat-form-field class="date-field">
+            <mat-label>Date</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="date" required>
+            <mat-icon matPrefix>calendar_today</mat-icon>
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            <mat-error *ngIf="appointmentForm.get('date')?.invalid">{{getErrorMessage('date')}}</mat-error>
+          </mat-form-field>
 
-      <mat-form-field>
-        <mat-label>Heure</mat-label>
-        <input matInput type="time" formControlName="time" required>
-        <mat-error *ngIf="appointmentForm.get('time')?.invalid">{{getErrorMessage('time')}}</mat-error>
-      </mat-form-field>
-    </div>
+          <mat-form-field class="time-field">
+            <mat-label>Heure</mat-label>
+            <input matInput type="time" formControlName="time" required>
+            <mat-icon matPrefix>access_time</mat-icon>
+            <mat-error *ngIf="appointmentForm.get('time')?.invalid">{{getErrorMessage('time')}}</mat-error>
+          </mat-form-field>
+        </div>
 
-    <div class="form-row">
-      <mat-form-field>
-        <mat-label>Durée (minutes)</mat-label>
-        <input matInput type="number" formControlName="duration" min="15" max="120" required>
-        <mat-error *ngIf="appointmentForm.get('duration')?.invalid">
-          {{getErrorMessage('duration')}}
-        </mat-error>
-      </mat-form-field>
+        <div class="form-row">
+          <mat-form-field class="duration-field">
+            <mat-label>Durée</mat-label>
+            <mat-select formControlName="duration" required>
+              <mat-option value="15">15 minutes</mat-option>
+              <mat-option value="30">30 minutes</mat-option>
+              <mat-option value="45">45 minutes</mat-option>
+              <mat-option value="60">1 heure</mat-option>
+              <mat-option value="90">1h 30</mat-option>
+              <mat-option value="120">2 heures</mat-option>
+            </mat-select>
+            <mat-icon matPrefix>timer</mat-icon>
+            <mat-error *ngIf="appointmentForm.get('duration')?.invalid">
+              {{getErrorMessage('duration')}}
+            </mat-error>
+          </mat-form-field>
 
-      <mat-form-field>
-        <mat-label>Type</mat-label>
-        <mat-select formControlName="type" required>
-          <mat-option *ngFor="let type of appointmentTypes" [value]="type">
-            {{type}}
-          </mat-option>
-        </mat-select>
-        <mat-error *ngIf="appointmentForm.get('type')?.invalid">{{getErrorMessage('type')}}</mat-error>
-      </mat-form-field>
-    </div>
+          <mat-form-field class="type-field">
+            <mat-label>Type de consultation</mat-label>
+            <mat-select formControlName="type" required>
+              <mat-option *ngFor="let type of appointmentTypes" [value]="type">
+                {{type}}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>local_hospital</mat-icon>
+            <mat-error *ngIf="appointmentForm.get('type')?.invalid">{{getErrorMessage('type')}}</mat-error>
+          </mat-form-field>
+        </div>
+      </div>
 
-    <mat-form-field class="full-width">
-      <mat-label>Notes</mat-label>
-      <textarea matInput formControlName="notes" rows="3"></textarea>
-    </mat-form-field>
-  </form>
-</mat-dialog-content>
+      <!-- Section Notes -->
+      <div class="form-section">
+        <div class="section-header">
+          <mat-icon>note</mat-icon>
+          <span>Notes complémentaires</span>
+        </div>
+        
+        <mat-form-field class="full-width notes-field">
+          <mat-label>Notes</mat-label>
+          <textarea matInput formControlName="notes" rows="3" 
+                    placeholder="Informations complémentaires sur le rendez-vous..."></textarea>
+          <mat-icon matPrefix>notes</mat-icon>
+        </mat-form-field>
+      </div>
+    </form>
+  </mat-dialog-content>
 
-<mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()">Annuler</button>
-  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!appointmentForm.valid">
-    {{data.appointment ? 'Modifier' : 'Créer'}}
-  </button>
-</mat-dialog-actions>
+  <mat-dialog-actions class="dialog-actions" align="end">
+    <button mat-stroked-button color="warn" (click)="onCancel()" class="cancel-button">
+      <mat-icon>close</mat-icon>
+      Annuler
+    </button>
+    <button mat-raised-button color="primary" (click)="onSubmit()" 
+            [disabled]="!appointmentForm.valid" class="submit-button">
+      <mat-icon>{{data.appointment ? 'save' : 'add'}}</mat-icon>
+      {{data.appointment ? 'Modifier' : 'Créer'}}
+    </button>
+  </mat-dialog-actions>
+</div>
