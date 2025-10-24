@@ -93,8 +93,10 @@ export class CalendarViewComponent implements OnInit {
       calendarApi.removeAllEvents();
       
       this.appointments.forEach(appointment => {
-        const startDate = new Date(appointment.date);
-        const endDate = new Date(startDate.getTime() + (appointment.duration || 30) * 60000);
+        // Convertir correctement de UTC vers l'heure locale
+        const utcDate = new Date(appointment.date);
+        const localDate = new Date(utcDate.getTime() + utcDate.getTimezoneOffset() * 60000);
+        const endDate = new Date(localDate.getTime() + (appointment.duration || 30) * 60000);
         
         // Créer un titre plus informatif
         const patientName = appointment.patientName || this.getPatientNameFromPopulated(appointment) || 'Patient';
@@ -104,7 +106,7 @@ export class CalendarViewComponent implements OnInit {
         calendarApi.addEvent({
           id: appointment._id,
           title: title,
-          start: startDate,
+          start: localDate,
           end: endDate,
           backgroundColor: this.getEventColor(appointment.type),
           borderColor: this.getEventColor(appointment.type),
@@ -206,9 +208,11 @@ export class CalendarViewComponent implements OnInit {
   getAppointmentForSlot(timeSlot: string): Appointment | undefined {
     const [hours, minutes] = timeSlot.split(':').map(Number);
     return this.appointments.find(appointment => {
-      const appointmentDate = new Date(appointment.date);
-      return appointmentDate.getUTCHours() === hours && 
-             Math.floor(appointmentDate.getUTCMinutes() / 30) * 30 === minutes;
+      // Convertir de UTC vers local pour la comparaison
+      const utcDate = new Date(appointment.date);
+      const localDate = new Date(utcDate.getTime() + utcDate.getTimezoneOffset() * 60000);
+      return localDate.getHours() === hours && 
+             Math.floor(localDate.getMinutes() / 30) * 30 === minutes;
     });
   }
 
