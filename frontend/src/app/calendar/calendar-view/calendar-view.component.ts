@@ -72,7 +72,9 @@ export class CalendarViewComponent implements OnInit {
     allDaySlot: false,
     nowIndicator: true,
     eventDisplay: 'block',
-    eventClick: this.handleEventClick.bind(this)
+    eventClick: this.handleEventClick.bind(this),
+    eventDrop: this.handleEventDrop.bind(this),
+    eventResize: this.handleEventResize.bind(this)
   };
 
   constructor(
@@ -346,5 +348,66 @@ export class CalendarViewComponent implements OnInit {
   handleEventClick(info: any) {
     const appointment = info.event.extendedProps.appointment;
     this.showAppointmentDetails(appointment);
+  }
+
+  handleEventDrop(info: any) {
+    const appointment = info.event.extendedProps.appointment;
+    const newStart = info.event.start;
+    
+    // Convertir la nouvelle date de local vers UTC pour la base de données
+    const localDate = new Date(newStart);
+    const utcDate = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000);
+    
+    // Mettre à jour le RDV en base
+    const updatedAppointment: Partial<Appointment> = {
+      date: utcDate
+    };
+
+    this.appointmentService.updateAppointment(appointment._id, updatedAppointment).subscribe({
+      next: (updated) => {
+        console.log('Appointment moved:', updated);
+        this.snackBar.open('Rendez-vous déplacé avec succès', 'Fermer', { duration: 3000 });
+        // Pas besoin de recharger, l'événement est déjà à la bonne place visuellement
+      },
+      error: (error) => {
+        console.error('Error moving appointment:', error);
+        this.snackBar.open('Erreur lors du déplacement du rendez-vous', 'Fermer', { duration: 3000 });
+        // Remettre l'événement à sa position d'origine
+        info.revert();
+      }
+    });
+  }
+
+  handleEventResize(info: any) {
+    const appointment = info.event.extendedProps.appointment;
+    const newStart = info.event.start;
+    const newEnd = info.event.end;
+    
+    // Calculer la nouvelle durée en minutes
+    const newDuration = Math.round((newEnd.getTime() - newStart.getTime()) / 60000);
+    
+    // Convertir la nouvelle date de local vers UTC pour la base de données
+    const localDate = new Date(newStart);
+    const utcDate = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000);
+    
+    // Mettre à jour le RDV en base
+    const updatedAppointment: Partial<Appointment> = {
+      date: utcDate,
+      duration: newDuration
+    };
+
+    this.appointmentService.updateAppointment(appointment._id, updatedAppointment).subscribe({
+      next: (updated) => {
+        console.log('Appointment resized:', updated);
+        this.snackBar.open('Durée du rendez-vous modifiée avec succès', 'Fermer', { duration: 3000 });
+        // Pas besoin de recharger, l'événement est déjà à la bonne taille visuellement
+      },
+      error: (error) => {
+        console.error('Error resizing appointment:', error);
+        this.snackBar.open('Erreur lors de la modification de la durée', 'Fermer', { duration: 3000 });
+        // Remettre l'événement à sa taille d'origine
+        info.revert();
+      }
+    });
   }
 }

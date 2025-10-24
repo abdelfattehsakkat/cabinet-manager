@@ -291,6 +291,39 @@ full-calendar {
     border-color: #e9ecef;
   }
 
+  // Styles pour le drag & drop
+  .fc-event-dragging {
+    opacity: 0.8;
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+    z-index: 999;
+  }
+
+  .fc-event-resizing {
+    opacity: 0.9;
+  }
+
+  // Indicateur visuel pendant le déplacement
+  .fc-highlight {
+    background-color: rgba(46, 125, 50, 0.1) !important;
+    border: 2px dashed #2e7d32 !important;
+  }
+
+  // Curseur pour indiquer que l'événement est déplaçable
+  .fc-event {
+    cursor: move;
+    
+    &:hover {
+      cursor: move;
+    }
+  }
+
+  // Poignées de redimensionnement
+  .fc-event-resizer {
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+  }
+
   // Styles pour la vue mois
   .fc-daygrid .fc-col-header-cell {
     .fc-col-header-cell-cushion {
