@@ -54,15 +54,17 @@
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef> Actions </th>
         <td mat-cell *matCellDef="let user">
-          <button mat-button color="accent" (click)="viewUser(user)" matTooltip="Voir les détails">
-            👁️ Voir
-          </button>
-          <button mat-button color="primary" (click)="editUser(user)" matTooltip="Modifier">
-            ✏️ Modifier
-          </button>
-          <button mat-button color="warn" (click)="deleteUser(user)" matTooltip="Supprimer">
-            🗑️ Supprimer
-          </button>
+          <div class="action-buttons">
+            <button mat-icon-button class="view-button" (click)="viewUser(user)" matTooltip="Voir les détails">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button mat-icon-button class="edit-button" (click)="editUser(user)" matTooltip="Modifier">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button class="delete-button" (click)="deleteUser(user)" matTooltip="Supprimer">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
         </td>
       </ng-container>
 
@@ -139,4 +141,33 @@
       </button>
     </mat-dialog-actions>
   </div>
-</ng-template>
+ </ng-template>
+<style>
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .action-buttons button.mat-icon-button {
+    font-size: 18px;
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
+    border-radius: 50%;
+    box-shadow: none;
+    background: transparent;
+    transition: background 0.2s;
+  }
+  .view-button mat-icon {
+    color: #1976d2;
+  }
+  .edit-button mat-icon {
+    color: #388e3c;
+  }
+  .delete-button mat-icon {
+    color: #d32f2f;
+  }
+  .action-buttons button.mat-icon-button:hover {
+    background: #f5f5f5;
+  }
+</style>
