@@ -59,7 +59,8 @@ export class CalendarViewComponent implements OnInit {
     selectable: true,
     selectMirror: true,
     dayMaxEvents: true,
-    height: 'auto',
+    height: 600,
+    contentHeight: 'auto',
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
