@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.routes';
 import patientRoutes from './routes/patient.routes';
 import appointmentRoutes from './routes/appointment.routes';
 import treatmentRoutes from './routes/treatment.routes';
+import userRoutes from './routes/user.routes';
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/treatments', treatmentRoutes);
+app.use('/api/users', userRoutes);
 
 // Basic route for testing
 app.get('/', (_req: Request, res: Response) => {

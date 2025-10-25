@@ -11,6 +11,10 @@ const routes: Routes = [
   {
     path: 'login',
     loadComponent: () => import('./login/login.component').then(c => c.LoginComponent)
+  },
+  {
+    path: 'user-management',
+    loadComponent: () => import('./user-management/user-management.component').then(c => c.UserManagementComponent)
   }
 ];
 

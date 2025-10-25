@@ -107,15 +107,16 @@
         </a>
         
         <!-- Gestion des utilisateurs - accessible aux admins uniquement -->
-        <a mat-list-item 
+          <!-- Menu Manage - visible uniquement pour les admins -->
+          <a mat-list-item 
            *appHasPermission="'userManagement'"
            routerLink="/auth/user-management" 
            routerLinkActive="nav-active" 
            [routerLinkActiveOptions]="{exact: false}" 
            class="nav-item">
-          <mat-icon class="nav-icon">group</mat-icon>
-          <span class="nav-text">Utilisateurs</span>
-        </a>
+          <mat-icon class="nav-icon">manage_accounts</mat-icon>
+          <span class="nav-text">Manage</span>
+          </a>
       </mat-nav-list>
     </mat-sidenav>
 

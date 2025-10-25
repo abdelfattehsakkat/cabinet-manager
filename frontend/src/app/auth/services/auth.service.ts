@@ -44,13 +44,11 @@ export class AuthService {
           localStorage.setItem(this.tokenKey, response.token);
           
           const user: User = {
-            id: response._id,
-            username: response.email, // Using email as username
+            _id: response._id,
             email: response.email,
             firstName: response.firstName,
             lastName: response.lastName,
             role: response.role,
-            lastLogin: new Date()
           };
           
           localStorage.setItem(this.userKey, JSON.stringify(user));
@@ -224,7 +222,7 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, userData)
       .pipe(
         map(response => ({
-          id: response._id,
+          _id: response._id,
           username: response.email,
           email: response.email,
           firstName: response.firstName,

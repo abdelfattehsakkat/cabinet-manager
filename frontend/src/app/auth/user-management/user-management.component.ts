@@ -13,6 +13,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { User } from '../models/user.model';
 import { AuthService } from '../services/auth.service';
+import { UserService } from '../services/user.service';
 // import { UserFormDialogComponent } from './user-form-dialog.component';
 
 @Component({
@@ -36,14 +37,15 @@ import { AuthService } from '../services/auth.service';
 export class UserManagementComponent implements OnInit {
   @ViewChild('userDetailsDialog') userDetailsDialog!: TemplateRef<any>;
   
-  displayedColumns: string[] = ['username', 'email', 'firstName', 'lastName', 'role', 'actions'];
+  displayedColumns: string[] = ['firstName', 'lastName', 'email', 'role', 'phoneNumber', 'specialization', 'createdAt', 'actions'];
   dataSource: MatTableDataSource<User>;
   selectedUser: User | null = null;
   private userDetailsDialogRef: MatDialogRef<any> | null = null;
 
   constructor(
     private authService: AuthService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private userService: UserService
   ) {
     this.dataSource = new MatTableDataSource<User>();
   }
@@ -53,28 +55,14 @@ export class UserManagementComponent implements OnInit {
   }
 
   loadUsers() {
-    // Temporary mock data for testing
-    const mockUsers: User[] = [
-      {
-        id: 1,
-        username: 'ali.gharbi',
-        email: 'ali.gharbi@gmail.com',
-        firstName: 'Ali',
-        lastName: 'Gharbi',
-        role: 'ADMIN',
-        createdAt: new Date('2025-01-15')
+    this.userService.getUsers().subscribe({
+      next: (users) => {
+        this.dataSource.data = users;
       },
-      {
-        id: 2, 
-        username: 'fatma.sakkat',
-        email: 'fatma.sakkat@gmail.com',
-        firstName: 'Fatma',
-        lastName: 'Sakkat',
-        role: 'DOCTOR',
-        createdAt: new Date('2025-02-20')
+      error: (err) => {
+        console.error('Erreur chargement utilisateurs', err);
       }
-    ];
-    this.dataSource.data = mockUsers;
+    });
   }
 
   applyFilter(event: Event) {
@@ -113,7 +101,7 @@ export class UserManagementComponent implements OnInit {
       // TODO: Implement actual delete functionality
       console.log('Delete user functionality to be implemented', user);
       // Remove from mock data for now
-      this.dataSource.data = this.dataSource.data.filter(u => u.id !== user.id);
+  this.dataSource.data = this.dataSource.data.filter(u => u._id !== user._id);
     }
   }
 }

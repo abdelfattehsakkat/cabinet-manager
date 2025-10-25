@@ -1,14 +1,14 @@
 export type UserRole = 'ADMIN' | 'DOCTOR' | 'SECRETARY';
 
 export interface User {
-  id?: string;
-  username: string;
+  _id?: string;
   email: string;
   firstName: string;
   lastName: string;
   role: UserRole;
   phoneNumber?: string;
   specialization?: string;
-  createdAt?: Date;
-  lastLogin?: Date;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  __v?: number;
 }
