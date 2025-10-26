@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild, TemplateRef } from '@angular/core';
+import { UserFormDialogComponent } from './user-form-dialog.component';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableDataSource } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
@@ -10,6 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { User } from '../models/user.model';
 import { AuthService } from '../services/auth.service';
@@ -31,13 +33,14 @@ import { UserService } from '../services/user.service';
     MatPaginatorModule,
     MatSortModule,
     MatDialogModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatCardModule
   ]
 })
 export class UserManagementComponent implements OnInit {
   @ViewChild('userDetailsDialog') userDetailsDialog!: TemplateRef<any>;
   
-  displayedColumns: string[] = ['firstName', 'lastName', 'email', 'role', 'phoneNumber', 'specialization', 'createdAt', 'actions'];
+  displayedColumns: string[] = ['firstName', 'lastName', 'email', 'role', 'actions'];
   dataSource: MatTableDataSource<User>;
   selectedUser: User | null = null;
   private userDetailsDialogRef: MatDialogRef<any> | null = null;
@@ -71,8 +74,23 @@ export class UserManagementComponent implements OnInit {
   }
 
   addUser() {
-    // TODO: Implement user creation dialog
-    console.log('Add user functionality to be implemented');
+    const dialogRef = this.dialog.open(UserFormDialogComponent, {
+      width: '500px',
+      maxWidth: '90vw',
+      data: null
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.userService.createUser(result).subscribe({
+          next: (user) => {
+            this.loadUsers();
+          },
+          error: (err) => {
+            console.error('Erreur création utilisateur', err);
+          }
+        });
+      }
+    });
   }
 
   editUser(user: User) {

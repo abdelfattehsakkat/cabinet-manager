@@ -1,3 +1,228 @@
+.mat-column-email {
+  max-width: 180px;
+  width: 180px;
+  word-break: break-all;
+  white-space: normal;
+}
+.header-card {
+  margin-bottom: 20px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+  
+  .mat-mdc-card-header {
+    background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 0;
+    
+    .mat-mdc-card-title {
+      font-size: 18px;
+      font-weight: 600;
+      /* Copie du patient-list.component.scss pour adaptation Manager */
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      
+      .mat-icon {
+        font-size: 20px;
+      }
+    }
+  }
+  
+  .mat-mdc-card-content {
+    padding: 16px 20px;
+    
+    .header-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      
+      .search-field {
+        flex: 1;
+        max-width: 500px;
+        
+        .mat-mdc-form-field {
+          width: 100%;
+          
+          .mat-mdc-text-field-wrapper {
+            border-radius: 8px;
+          }
+        }
+      }
+      button[mat-raised-button] {
+        background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+        color: white;
+        font-weight: 600;
+        padding: 14px 28px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(32, 201, 151, 0.25);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: none;
+        text-transform: none;
+        font-size: 14px;
+        letter-spacing: 0.5px;
+        position: relative;
+        overflow: hidden;
+      }
+      button[mat-raised-button]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(32, 201, 151, 0.35);
+      }
+    }
+  }
+}
+
+// Style du tableau Manager, identique au tableau Patients
+// Style identique à patients-table-card
+.manager-table-card {
+  margin-bottom: 20px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+  margin-top: 20px;
+
+  .mat-mdc-card-header {
+    background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 0;
+
+    .mat-mdc-card-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .mat-icon {
+        font-size: 20px;
+      }
+    }
+  }
+
+  .mat-mdc-card-content {
+    padding: 16px 20px;
+  }
+}
+// Responsive table container
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  min-width: 0;
+  background: white;
+  border-radius: 12px;
+  padding-bottom: 8px;
+}
+
+// Le tableau a une largeur minimale pour forcer l'affichage de toutes les colonnes
+.manager-table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+  background: white;
+}
+
+@media (max-width: 900px) {
+  .manager-table {
+    min-width: 900px;
+  }
+  .mat-column-email {
+    display: none;
+  }
+  /* Ne jamais masquer la colonne Actions */
+  .mat-column-actions {
+    display: table-cell !important;
+    min-width: 120px;
+  }
+}
+th.mat-header-cell {
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+  padding: 16px 12px;
+  background-color: #f8f9fa;
+}
+td.mat-cell {
+  padding: 12px;
+  border-bottom: 1px solid #dee2e6;
+}
+.mat-header-row, .mat-row {
+  transition: background-color 0.2s ease;
+}
+.mat-row:hover {
+  background-color: #f8f9fa;
+}
+.mat-column-actions {
+  width: 120px !important;
+  min-width: 120px !important;
+  max-width: 120px !important;
+  text-align: center;
+  display: table-cell !important;
+}
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+}
+.action-buttons .mat-icon-button {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  padding: 0;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  position: relative;
+}
+.action-buttons .mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.action-buttons .view-button {
+  color: #2196F3;
+}
+.action-buttons .view-button:hover {
+  background-color: rgba(33, 150, 243, 0.1);
+  color: #1976D2;
+}
+.action-buttons .edit-button {
+  color: #20c997;
+}
+.action-buttons .edit-button:hover {
+  background-color: rgba(32, 201, 151, 0.1);
+  color: #1aa085;
+}
+.action-buttons .delete-button {
+  color: #054034;
+}
+.action-buttons .delete-button:hover {
+  background-color: rgba(244, 67, 54, 0.1);
+  color: #054034;
+}
+@media (max-width: 768px) {
+  .mat-column-email,
+  .mat-column-phoneNumber {
+    display: none;
+  }
+}
 .user-management-container {
   padding: 20px;
   

@@ -1,0 +1,19 @@
+.user-form-dialog-container {
+  min-width: 400px;
+  max-width: 500px;
+  padding: 16px;
+}
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+mat-form-field {
+  flex: 1;
+}
+.button-row {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
