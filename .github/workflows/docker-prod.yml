@@ -31,7 +31,10 @@ jobs:
           context: ./backend
           file: ./backend/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/cabinet-backend:latest
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/cabinet-backend:latest
+            ghcr.io/${{ github.repository_owner }}/cabinet-backend:${{ github.ref_name }}
 
       - name: Build and push frontend image
         uses: docker/build-push-action@v5
@@ -39,4 +42,7 @@ jobs:
           context: ./frontend
           file: ./frontend/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/cabinet-frontend:latest
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/cabinet-frontend:latest
+            ghcr.io/${{ github.repository_owner }}/cabinet-frontend:${{ github.ref_name }}
