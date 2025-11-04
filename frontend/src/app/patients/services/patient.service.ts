@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, tap, switchMap } from 'rxjs';
+import { ConfigService } from '../../shared/services/config.service';
 
 export interface Patient {
   _id: string;
@@ -34,13 +35,16 @@ export interface PaginatedResponse {
   };
 }
 
+
 @Injectable({
   providedIn: 'root'
 })
 export class PatientService {
-  private apiUrl = 'http://localhost:3000/api/patients';
+  constructor(private http: HttpClient, private configService: ConfigService) { }
 
-  constructor(private http: HttpClient) { }
+  get apiUrl(): string {
+    return this.configService.apiUrl + '/patients';
+  }
 
   getPatients(): Observable<Patient[]> {
     console.log('Fetching patients from API');

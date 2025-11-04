@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { ConfigService } from '../../shared/services/config.service';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { User, UserRole } from '../models/user.model';
@@ -18,26 +19,29 @@ interface LoginRequest {
   password: string;
 }
 
+
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api';
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
   private tokenKey = 'auth_token';
   private userKey = 'current_user';
   private tokenCheckInterval?: number;
 
-  constructor(private http: HttpClient) {
-    // Check for existing session on service initialization
+  constructor(private http: HttpClient, private configService: ConfigService) {
     this.loadUserFromStorage();
+  }
+
+  private get apiUrl(): string {
+    return this.configService.apiUrl;
   }
 
   login(email: string, password: string): Observable<User> {
     const loginData: LoginRequest = { email, password };
-    
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, loginData)
+    const url = `${this.apiUrl}/auth/login`;
+    return this.http.post<AuthResponse>(url, loginData)
       .pipe(
         map(response => {
           // Store token and user data
@@ -60,7 +64,6 @@ export class AuthService {
           return user;
         }),
         catchError(error => {
-          console.error('Login error:', error);
           return throwError(() => error);
         })
       );

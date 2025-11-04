@@ -47,6 +47,9 @@ services:
       - backend
     networks:
       - cabinet-network
+    volumes:
+      # Monte un config.json personnalisé depuis l'hôte (adapter le chemin si besoin)
+      - /home/cabinetapp/cabinet-manager/config/config.json:/usr/share/nginx/html/assets/config.json:ro
 
 networks:
   cabinet-network:

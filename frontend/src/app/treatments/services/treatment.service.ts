@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { ConfigService } from '../../shared/services/config.service';
 
 export interface Treatment {
   _id: string;
@@ -41,13 +42,16 @@ export interface TreatmentStats {
   firstTreatmentDate: Date | null;
 }
 
+
 @Injectable({
   providedIn: 'root'
 })
 export class TreatmentService {
-  private apiUrl = 'http://localhost:3000/api/treatments';
+  constructor(private http: HttpClient, private configService: ConfigService) { }
 
-  constructor(private http: HttpClient) { }
+  get apiUrl(): string {
+    return this.configService.apiUrl + '/treatments';
+  }
 
   // Get all treatments with pagination and search
   getAllTreatments(page: number = 1, limit: number = 10, search: string = ''): Observable<TreatmentPaginatedResponse> {

@@ -1,4 +1,9 @@
-import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection, LOCALE_ID } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection, LOCALE_ID, APP_INITIALIZER } from '@angular/core';
+import { ConfigService } from './shared/services/config.service';
+// Factory pour APP_INITIALIZER
+export function loadConfigFactory(configService: ConfigService) {
+  return () => configService.loadConfig();
+}
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -27,6 +32,12 @@ export const appConfig: ApplicationConfig = {
       multi: true
     },
     { provide: LOCALE_ID, useValue: 'fr-FR' },
-    { provide: MAT_DATE_LOCALE, useValue: 'fr-FR' }
+    { provide: MAT_DATE_LOCALE, useValue: 'fr-FR' },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: loadConfigFactory,
+      deps: [ConfigService],
+      multi: true
+    }
   ]
 };

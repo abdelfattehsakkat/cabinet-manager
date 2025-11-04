@@ -2,12 +2,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { User } from '../models/user.model';
+import { ConfigService } from '../../shared/services/config.service';
+
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  private apiUrl = 'http://localhost:3000/api/users';
+  constructor(private http: HttpClient, private configService: ConfigService) {}
 
-  constructor(private http: HttpClient) {}
+  get apiUrl(): string {
+    return this.configService.apiUrl + '/users';
+  }
 
   getUsers(): Observable<User[]> {
     return this.http.get<User[]>(this.apiUrl);
