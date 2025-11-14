@@ -7,9 +7,10 @@ export const getAppointments = async (req: Request, res: Response): Promise<void
         console.log('[GET] /appointments - Query params:', req.query);
         const filter: any = {};
         
-        if (req.query.doctorId) {
-            filter.doctor = req.query.doctorId;
-        }
+        // Filtrage par doctorId désactivé (application monopratique)
+        // if (req.query.doctorId) {
+        //     filter.doctor = req.query.doctorId;
+        // }
         
         if (req.query.patientId) {
             filter.patient = req.query.patientId;

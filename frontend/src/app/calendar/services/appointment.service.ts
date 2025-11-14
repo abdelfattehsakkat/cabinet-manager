@@ -55,15 +55,16 @@ export class AppointmentService {
     return 'Unknown Patient';
   }
 
+  // doctorId désactivé (application monopratique)
   getAppointments(params?: { 
-    doctorId?: string; 
+    // doctorId?: string; 
     patientId?: string;
     startDate?: Date;
     endDate?: Date;
   }): Observable<Appointment[]> {
     console.log('Fetching appointments with params:', params);
-  return this.http.get<Appointment[]>(this.apiUrl, { params: params as any }).pipe(
-      tap(appointments => console.log('Received appointments:', appointments))
+    return this.http.get<Appointment[]>(this.apiUrl, { params: params as any }).pipe(
+      tap((appointments: Appointment[]) => console.log('Received appointments:', appointments))
     );
   }
 

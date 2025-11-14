@@ -1,4 +1,3 @@
-// filepath: /Users/abdelfatteh/Documents/workspace/cabinetAI/frontend/src/app/calendar/calendar-view/calendar-view.component.ts
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { AppointmentDialogComponent } from '../appointment-dialog/appointment-dialog.component';
@@ -83,7 +82,9 @@ export class CalendarViewComponent implements OnInit {
     eventClick: this.handleEventClick.bind(this),
     eventDrop: this.handleEventDrop.bind(this),
     eventResize: this.handleEventResize.bind(this),
-    select: this.handleDateSelect.bind(this)
+    select: this.handleDateSelect.bind(this),
+    // Recharger les rendez-vous à chaque changement de vue ou navigation
+    datesSet: this.handleDatesSet.bind(this)
   };
 
   constructor(
@@ -153,32 +154,40 @@ export class CalendarViewComponent implements OnInit {
   }
 
   loadAppointments() {
-    // Charger les RDV pour tout le mois visible, pas seulement la date sélectionnée
+    // Charger les RDV pour une période étendue (3 mois : précédent + actuel + suivant)
+    // pour couvrir tous les jours visibles dans le calendrier
     const startDate = new Date(this.selectedDate);
-    startDate.setDate(1); // Premier jour du mois
+    startDate.setMonth(startDate.getMonth() - 1); // Mois précédent
+    startDate.setDate(1); // Premier jour du mois précédent
     startDate.setHours(0, 0, 0, 0);
     
     const endDate = new Date(this.selectedDate);
-    endDate.setMonth(endDate.getMonth() + 1); // Mois suivant
-    endDate.setDate(0); // Dernier jour du mois actuel
+    endDate.setMonth(endDate.getMonth() + 2); // Deux mois après le mois actuel
+    endDate.setDate(0); // Dernier jour du mois suivant
     endDate.setHours(23, 59, 59, 999);
 
     // Convert to UTC for API request
     const startUTC = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
     const endUTC = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
 
-    console.log('Loading appointments for date range:', { startUTC, endUTC });
+    console.log('Loading appointments for extended date range:', { 
+      startLocal: startDate.toISOString(), 
+      endLocal: endDate.toISOString(),
+      startUTC: startUTC.toISOString(), 
+      endUTC: endUTC.toISOString() 
+    });
+
+    // doctorId désactivé (application monopratique)
     this.appointmentService.getAppointments({
-      doctorId: this.currentDoctor,
       startDate: startUTC,
       endDate: endUTC
     }).subscribe({
-      next: (appointments) => {
+      next: (appointments: Appointment[]) => {
         console.log('Loaded appointments:', appointments);
         this.appointments = appointments;
         this.updateCalendarEvents();
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading appointments:', error);
         this.snackBar.open('Erreur lors du chargement des rendez-vous', 'Fermer', { duration: 3000 });
       }
@@ -358,6 +367,17 @@ export class CalendarViewComponent implements OnInit {
     // Désélectionner après avoir ouvert le dialog
     const calendarApi = this.calendar.getApi();
     calendarApi.unselect();
+  }
+
+  handleDatesSet(dateInfo: any) {
+    // Appelé à chaque changement de vue ou navigation (prev/next)
+    console.log('Calendar view changed:', dateInfo);
+    
+    // Mettre à jour selectedDate avec la date visible dans le calendrier
+    this.selectedDate = new Date(dateInfo.start);
+    
+    // Recharger les rendez-vous pour la nouvelle période visible
+    this.loadAppointments();
   }
 
   private openAppointmentDialog(selectedDate: Date) {
