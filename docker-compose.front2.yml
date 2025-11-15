@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # MongoDB service
+  mongodb:
+    image: mongo:7.0.7
+    container_name: cabinet-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    networks:
+      - cabinet-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Backend service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cabinet-backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - MONGODB_URI=mongodb://root:password@mongodb:27017/cabinetdb?authSource=admin
+      - JWT_SECRET=your_jwt_secret_key_here
+      - JWT_EXPIRE=1d
+      - UPLOAD_DIR=./uploads
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - cabinet-network
+
+  # Front2 service (production-ready nginx image serving exported web build)
+  front2:
+    build:
+      context: ./front2
+      dockerfile: Dockerfile
+    container_name: cabinet-front2
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - cabinet-network
+
+networks:
+  cabinet-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:

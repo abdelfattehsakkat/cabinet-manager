@@ -1,0 +1,10 @@
+node_modules
+.git
+.expo
+*.log
+dist
+build
+web-build
+npm-debug.log
+/.vscode
+/.DS_Store
