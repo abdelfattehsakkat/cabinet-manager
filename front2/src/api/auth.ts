@@ -1,7 +1,6 @@
-import config from '../config';
+const API_BASE = (process.env.REACT_NATIVE_APP_API_URL as string) || 'http://localhost:3000';
 
 export async function login(email: string, password: string) {
-  const API_BASE = config.getApiUrl();
   const url = `${API_BASE}/api/auth/login`;
   const res = await fetch(url, {
     method: 'POST',

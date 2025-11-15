@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import config from '../config';
+import { API_ROOT } from '../config';
 
 async function authHeader() {
   try {
@@ -13,7 +13,6 @@ async function authHeader() {
 async function request(path: string, opts: RequestInit = {}) {
   const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) } as any;
   const auth = await authHeader();
-  const API_ROOT = config.getApiRoot();
   const res = await fetch(`${API_ROOT}${path}`, { ...opts, headers: { ...headers, ...auth } });
   if (res.status === 204) return null;
   const text = await res.text();
