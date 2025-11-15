@@ -1,7 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import useDebouncedValue from '../hooks/useDebouncedValue';
-import { View, Text, TextInput, FlatList, Pressable, StyleSheet, ActivityIndicator, Alert, Button } from 'react-native';
+import { View, Text, TextInput, FlatList, Pressable, StyleSheet, ActivityIndicator, Alert, Button, Platform } from 'react-native';
 import patientsApi, { Patient, PaginatedResponse } from '../api/patients';
+import PatientDetailModal from '../ui/PatientDetailModal';
+import PatientEditModal from '../ui/PatientEditModal';
+import ConfirmModal from '../ui/ConfirmModal';
 
 type Props = {};
 
@@ -14,6 +17,11 @@ export default function Patients(_props: Props) {
   const [limit] = useState(10);
   const [data, setData] = useState<Patient[]>([]);
   const [pagination, setPagination] = useState<PaginatedResponse['pagination'] | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [detailVisible, setDetailVisible] = useState(false);
+  const [editVisible, setEditVisible] = useState(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [toDeleteId, setToDeleteId] = useState<string | null>(null);
 
   const fetchPage = async (p = 1) => {
     setLoading(true);
@@ -60,28 +68,58 @@ export default function Patients(_props: Props) {
   }, [debouncedSearch]);
 
   const onView = (p: Patient) => {
-    Alert.alert('Voir patient', `Id fiche: ${p._id}\nNom: ${p.lastName}\nPrénom: ${p.firstName}`);
+    // fetch full patient details and open modal
+    (async () => {
+      setLoading(true);
+      try {
+        const full = await patientsApi.getPatient(p._id);
+        setSelectedPatient(full);
+        setDetailVisible(true);
+      } catch (err) {
+        console.error('Failed to load patient', err);
+        Alert.alert('Erreur', 'Impossible de charger le patient.');
+      } finally {
+        setLoading(false);
+      }
+    })();
   };
 
   const onEdit = (p: Patient) => {
-    Alert.alert('Éditer patient', `Ouvrir le formulaire d'édition pour ${p.firstName} ${p.lastName} (ID ${p._id})`);
+    (async () => {
+      setLoading(true);
+      try {
+        const full = await patientsApi.getPatient(p._id);
+        setSelectedPatient(full);
+        setEditVisible(true);
+      } catch (err) {
+        console.error('Failed to load patient for edit', err);
+        Alert.alert('Erreur', 'Impossible de charger le patient.');
+      } finally {
+        setLoading(false);
+      }
+    })();
   };
 
-  const onDelete = async (id: string) => {
-    Alert.alert('Confirmer', 'Voulez-vous supprimer ce patient ?', [
-      { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: async () => {
-        setLoading(true);
-        try {
-          await patientsApi.deletePatient(id);
-          fetchPage(page);
-        } catch (err) {
-          console.error('Delete failed', err);
-        } finally {
-          setLoading(false);
-        }
-      }}
-    ]);
+  const confirmAndDelete = async (id?: string | null) => {
+    const target = id ?? toDeleteId;
+    if (!target) return;
+    setConfirmVisible(false);
+    setToDeleteId(null);
+    setLoading(true);
+    try {
+      await patientsApi.deletePatient(target);
+      fetchPage(page);
+    } catch (err) {
+      console.error('Delete failed', err);
+      Alert.alert('Erreur', "La suppression a échoué.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const askDelete = (id: string) => {
+    setToDeleteId(id);
+    setConfirmVisible(true);
   };
 
   const renderHeader = () => (
@@ -105,7 +143,7 @@ export default function Patients(_props: Props) {
         <Pressable onPress={() => onEdit(item)} style={styles.iconBtn} accessibilityLabel="Éditer">
           <Text style={styles.icon}>✏️</Text>
         </Pressable>
-        <Pressable onPress={() => onDelete(item._id)} style={styles.deleteBtn} accessibilityLabel="Supprimer">
+        <Pressable onPress={() => askDelete(item._id)} style={styles.deleteBtn} accessibilityLabel="Supprimer">
           <Text style={{ color: '#fff' }}>🗑️</Text>
         </Pressable>
       </View>
@@ -135,6 +173,9 @@ export default function Patients(_props: Props) {
         <Text style={{ marginHorizontal: 12 }}>{pagination ? `${pagination.currentPage} / ${pagination.totalPages}` : page}</Text>
         <Button title="Suiv" onPress={() => fetchPage(page + 1)} disabled={!pagination || !pagination.hasNextPage} />
       </View>
+      <PatientDetailModal visible={detailVisible} patient={selectedPatient} onClose={() => { setDetailVisible(false); setSelectedPatient(null); }} />
+      <PatientEditModal visible={editVisible} patient={selectedPatient} onClose={() => { setEditVisible(false); setSelectedPatient(null); }} onSaved={(updated) => { setEditVisible(false); setSelectedPatient(updated); fetchPage(page); }} />
+      <ConfirmModal visible={confirmVisible} title="Supprimer le patient" message="Voulez-vous vraiment supprimer ce patient ? Cette action est irréversible." onConfirm={() => confirmAndDelete()} onCancel={() => { setConfirmVisible(false); setToDeleteId(null); }} />
     </View>
   );
 }
