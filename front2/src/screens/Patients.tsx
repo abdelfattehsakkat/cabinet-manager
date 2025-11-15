@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   icon: { fontSize: 16 },
   deleteBtn: { backgroundColor: 'transparent', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: '#eee', marginLeft: 4 },
   deleteIcon: { color: '#6c757d', fontSize: 16 },
-  addBtn: { marginLeft: 8, backgroundColor: '#edf7ee', borderRadius: 8, paddingHorizontal: 10, borderWidth: 1, borderColor: '#e0f0df', height: 40, justifyContent: 'center', alignItems: 'center' },
+  addBtn: { marginLeft: 8, backgroundColor: '#edf7ee', borderRadius: 8, paddingHorizontal: 14, borderWidth: 1, borderColor: '#e0f0df', height: 40, minWidth: 56, justifyContent: 'center', alignItems: 'center' },
   addIcon: { color: '#2e7d32', fontSize: 16, fontWeight: '700' },
   addBtnPressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
   pager: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 12 }
