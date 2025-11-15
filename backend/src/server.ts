@@ -12,7 +12,7 @@ import userRoutes from './routes/user.routes';
 dotenv.config();
 
 const app: Express = express();
-const port = process.env.PORT || 3000;
+const port = Number(process.env.PORT) || 3000;
 
 // Connect to MongoDB
 connectDB();
@@ -52,7 +52,7 @@ app.use((_req: Request, res: Response) => {
     res.status(404).json({ message: 'Route not found' });
 });
 
-// Start server
-app.listen(port, () => {
-    console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+// Start server (bind to 0.0.0.0 so the container/host accepts external connections)
+app.listen(port, '0.0.0.0', () => {
+    console.log(`⚡️[server]: Server is running at http://0.0.0.0:${port}`);
 });
