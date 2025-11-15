@@ -144,7 +144,7 @@ export default function Patients(_props: Props) {
           <Text style={styles.icon}>✏️</Text>
         </Pressable>
         <Pressable onPress={() => askDelete(item._id)} style={styles.deleteBtn} accessibilityLabel="Supprimer">
-          <Text style={{ color: '#fff' }}>🗑️</Text>
+          <Text style={styles.deleteIcon}>✖</Text>
         </Pressable>
       </View>
     </View>
@@ -192,6 +192,7 @@ const styles = StyleSheet.create({
   cell: { paddingVertical: 2 },
   iconBtn: { paddingHorizontal: 6, paddingVertical: 4, marginRight: 4 },
   icon: { fontSize: 16 },
-  deleteBtn: { backgroundColor: '#d32f2f', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6 },
+  deleteBtn: { backgroundColor: 'transparent', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: '#eee', marginLeft: 4 },
+  deleteIcon: { color: '#6c757d', fontSize: 16 },
   pager: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 12 }
 });

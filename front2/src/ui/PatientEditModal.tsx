@@ -65,8 +65,12 @@ export default function PatientEditModal({ visible, patient, onClose, onSaved }:
       <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
         <View style={styles.backdrop}>
           <View style={[styles.sheet, { width: sheetWidth }]}>
-            <View style={styles.header}>
-              <Text style={styles.title}>Éditer le patient</Text>
+            <View style={styles.headerTop}>
+              <View style={styles.avatar}><Text style={styles.avatarText}>{String(patient?.lastName ?? 'P').charAt(0)}</Text></View>
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={styles.nameSmall}>{(patient?.firstName ?? '') + ' ' + (patient?.lastName ?? '')}</Text>
+                <Text style={styles.subSmall}>{patient?.patientNumber ? `Fiche N° ${patient.patientNumber}` : ''}</Text>
+              </View>
               <Pressable onPress={onClose}><Text style={styles.close}>✕</Text></Pressable>
             </View>
 
@@ -74,44 +78,51 @@ export default function PatientEditModal({ visible, patient, onClose, onSaved }:
               {!patient && <Text>Aucun patient sélectionné</Text>}
               {patient && (
                 <View>
-                  <View style={styles.row}><Text style={styles.label}>Fiche</Text><Text style={styles.value}>{patient.patientNumber ?? '-'}</Text></View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Nom</Text>
-                    <TextInput value={String(form.lastName ?? '')} onChangeText={t => setForm(s => ({ ...s, lastName: t }))} style={styles.input} />
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Prénom</Text>
-                    <TextInput value={String(form.firstName ?? '')} onChangeText={t => setForm(s => ({ ...s, firstName: t }))} style={styles.input} />
+                  <View style={styles.rowCard}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.inputLabel}>Nom</Text>
+                      <TextInput value={String(form.lastName ?? '')} onChangeText={t => setForm(s => ({ ...s, lastName: t }))} style={styles.inputSoft} />
+                    </View>
+                    <View style={{ width: 12 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.inputLabel}>Prénom</Text>
+                      <TextInput value={String(form.firstName ?? '')} onChangeText={t => setForm(s => ({ ...s, firstName: t }))} style={styles.inputSoft} />
+                    </View>
                   </View>
 
                   <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>Date de naissance</Text>
-                    <Pressable onPress={() => setCalendarVisible(true)} style={[styles.input, { justifyContent: 'center' }]}>
+                    <Pressable onPress={() => setCalendarVisible(true)} style={[styles.inputSoft, { justifyContent: 'center' }]}>
                       <Text>{form.dateOfBirth ?? 'Sélectionner une date'}</Text>
                     </Pressable>
                   </View>
 
                   <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>E-mail</Text>
-                    <TextInput value={String(form.email ?? '')} onChangeText={t => setForm(s => ({ ...s, email: t }))} style={styles.input} keyboardType="email-address" />
+                    <TextInput value={String(form.email ?? '')} onChangeText={t => setForm(s => ({ ...s, email: t }))} style={styles.inputSoft} keyboardType="email-address" />
                   </View>
 
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Téléphone</Text>
-                    <TextInput value={String(form.phoneNumber ?? '')} onChangeText={t => setForm(s => ({ ...s, phoneNumber: t }))} style={styles.input} keyboardType="phone-pad" />
+                  <View style={styles.rowCard}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.inputLabel}>Téléphone</Text>
+                      <TextInput value={String(form.phoneNumber ?? '')} onChangeText={t => setForm(s => ({ ...s, phoneNumber: t }))} style={styles.inputSoft} keyboardType="phone-pad" />
+                    </View>
+                    <View style={{ width: 12 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.inputLabel}>Fiche</Text>
+                      <View style={[styles.inputSoft, { justifyContent: 'center' }]}><Text>{patient.patientNumber ?? '-'}</Text></View>
+                    </View>
                   </View>
 
                   <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>Adresse</Text>
-                    <TextInput value={String(form.address ?? '')} onChangeText={t => setForm(s => ({ ...s, address: t }))} style={styles.input} />
+                    <TextInput value={String(form.address ?? '')} onChangeText={t => setForm(s => ({ ...s, address: t }))} style={styles.inputSoft} />
                   </View>
 
-                  <View style={{ height: 12 }} />
-                  <View style={styles.actions}>
-                    <Pressable style={[styles.btn, { backgroundColor: '#eee' }]} onPress={onClose}><Text>Annuler</Text></Pressable>
-                    <Pressable style={[styles.btn, { backgroundColor: '#2e7d32' }]} onPress={submit} disabled={saving}>{saving ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff' }}>Sauver</Text>}</Pressable>
+                  <View style={{ height: 16 }} />
+                  <View style={styles.actionsBar}>
+                    <Pressable style={[styles.btnGhost]} onPress={onClose}><Text>Annuler</Text></Pressable>
+                    <Pressable style={[styles.btnPrimary]} onPress={submit} disabled={saving}>{saving ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '700' }}>Sauver</Text>}</Pressable>
                   </View>
                 </View>
               )}
@@ -128,7 +139,11 @@ export default function PatientEditModal({ visible, patient, onClose, onSaved }:
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', padding: 12 },
   sheet: { backgroundColor: '#fff', borderRadius: 10, maxHeight: '84%', alignSelf: 'center', overflow: 'hidden' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 10, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 12, borderBottomWidth: 1, borderBottomColor: '#f2f2f2' },
+  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#2e7d32', justifyContent: 'center', alignItems: 'center' },
+  avatarText: { color: '#fff', fontWeight: '700', fontSize: 18 },
+  nameSmall: { fontWeight: '800' },
+  subSmall: { color: '#666', fontSize: 12, marginTop: 2 },
   title: { fontWeight: '700' },
   close: { fontSize: 16 },
   body: { padding: 12 },
@@ -138,6 +153,11 @@ const styles = StyleSheet.create({
   inputGroup: { marginTop: 8 },
   inputLabel: { color: '#444', marginBottom: 4 },
   input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 6, paddingHorizontal: 8, height: 40 },
+  inputSoft: { backgroundColor: '#fbfbfb', borderRadius: 8, paddingHorizontal: 12, height: 44, borderWidth: 1, borderColor: '#eee', justifyContent: 'center' },
+  rowCard: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
   actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 },
-  btn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 }
+  actionsBar: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginTop: 6 },
+  btn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 },
+  btnGhost: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, backgroundColor: '#f2f2f2', marginRight: 8 },
+  btnPrimary: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, backgroundColor: '#2e7d32' }
 });
