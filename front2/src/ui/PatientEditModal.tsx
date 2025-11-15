@@ -6,39 +6,52 @@ import DatePickerCalendar from './DatePickerCalendar';
 type Props = {
   visible: boolean;
   patient?: Patient | null;
+  creating?: boolean;
   onClose: () => void;
   onSaved?: (updated: Patient) => void;
 };
 
-export default function PatientEditModal({ visible, patient, onClose, onSaved }: Props) {
+export default function PatientEditModal({ visible, patient, onClose, onSaved, creating = false }: Props) {
   const [form, setForm] = useState<Partial<Patient>>({});
   const [saving, setSaving] = useState(false);
   const [calendarVisible, setCalendarVisible] = useState(false);
 
   useEffect(() => {
-    if (!patient) return setForm({});
-    // normalize dateOfBirth to YYYY/MM/DD for display
-    const normalize = (d?: string | null) => {
-      if (!d) return undefined;
-      const asDate = new Date(d);
-      if (!isNaN(asDate.getTime())) {
-        const y = asDate.getFullYear();
-        const m = String(asDate.getMonth() + 1).padStart(2, '0');
-        const day = String(asDate.getDate()).padStart(2, '0');
-        return `${y}/${m}/${day}`;
-      }
-      // already maybe in YYYY/MM/DD or other; if contains '-' try replace
-      return d.replace(/-/g, '/');
-    };
+    // If editing an existing patient, populate form.
+    if (patient) {
+      // normalize dateOfBirth to YYYY/MM/DD for display
+      const normalize = (d?: string | null) => {
+        if (!d) return undefined;
+        const asDate = new Date(d);
+        if (!isNaN(asDate.getTime())) {
+          const y = asDate.getFullYear();
+          const m = String(asDate.getMonth() + 1).padStart(2, '0');
+          const day = String(asDate.getDate()).padStart(2, '0');
+          return `${y}/${m}/${day}`;
+        }
+        return d.replace(/-/g, '/');
+      };
 
-    setForm({ ...(patient as any), dateOfBirth: normalize(patient.dateOfBirth) });
-  }, [patient]);
+      setForm({ ...(patient as any), dateOfBirth: normalize(patient.dateOfBirth) });
+      return;
+    }
+
+    // If creating a new patient, ensure the form is empty
+    if (creating) {
+      setForm({});
+      return;
+    }
+  }, [patient, creating]);
+
+  // When the modal opens in creating mode, reset the form
+  useEffect(() => {
+    if (visible && creating) setForm({});
+  }, [visible, creating]);
 
   const win = Dimensions.get('window');
   const sheetWidth = Platform.OS === 'web' ? Math.min(Math.round(win.width * 0.9), 640) : Math.min(win.width - 24, 640);
 
   const submit = async () => {
-    if (!patient) return;
     setSaving(true);
     try {
       const payload: Partial<Patient> = {
@@ -49,8 +62,16 @@ export default function PatientEditModal({ visible, patient, onClose, onSaved }:
         phoneNumber: form.phoneNumber,
         address: form.address,
       };
-      const updated = await patientsApi.updatePatient(patient._id, payload);
-      onSaved?.(updated);
+
+      if (patient) {
+        // update existing
+        const updated = await patientsApi.updatePatient(patient._id, payload);
+        onSaved?.(updated);
+      } else {
+        // create new
+        const created = await patientsApi.createPatient(payload);
+        onSaved?.(created);
+      }
       onClose();
     } catch (err) {
       console.error('Save failed', err);
@@ -66,17 +87,17 @@ export default function PatientEditModal({ visible, patient, onClose, onSaved }:
         <View style={styles.backdrop}>
           <View style={[styles.sheet, { width: sheetWidth }]}>
             <View style={styles.headerTop}>
-              <View style={styles.avatar}><Text style={styles.avatarText}>{String(patient?.lastName ?? 'P').charAt(0)}</Text></View>
+              <View style={styles.avatar}><Text style={styles.avatarText}>{(patient?.lastName ?? (creating ? 'N' : 'P')).charAt(0)}</Text></View>
               <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={styles.nameSmall}>{(patient?.firstName ?? '') + ' ' + (patient?.lastName ?? '')}</Text>
-                <Text style={styles.subSmall}>{patient?.patientNumber ? `Fiche N° ${patient.patientNumber}` : ''}</Text>
+                <Text style={styles.nameSmall}>{patient ? `${patient.firstName} ${patient.lastName}` : creating ? 'Nouveau patient' : ''}</Text>
+                <Text style={styles.subSmall}>{patient?.patientNumber ? `Fiche N° ${patient.patientNumber}` : creating ? 'Nouvelle fiche' : ''}</Text>
               </View>
               <Pressable onPress={onClose}><Text style={styles.close}>✕</Text></Pressable>
             </View>
 
             <ScrollView style={styles.body}>
-              {!patient && <Text>Aucun patient sélectionné</Text>}
-              {patient && (
+              {!patient && !creating && <Text>Aucun patient sélectionné</Text>}
+              {(patient || creating) && (
                 <View>
                   <View style={styles.rowCard}>
                     <View style={{ flex: 1 }}>
@@ -110,7 +131,7 @@ export default function PatientEditModal({ visible, patient, onClose, onSaved }:
                     <View style={{ width: 12 }} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.inputLabel}>Fiche</Text>
-                      <View style={[styles.inputSoft, { justifyContent: 'center' }]}><Text>{patient.patientNumber ?? '-'}</Text></View>
+                      <View style={[styles.inputSoft, { justifyContent: 'center' }]}><Text>{patient?.patientNumber ?? '-'}</Text></View>
                     </View>
                   </View>
 

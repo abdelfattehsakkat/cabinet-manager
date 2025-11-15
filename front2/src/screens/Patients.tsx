@@ -155,7 +155,10 @@ export default function Patients(_props: Props) {
       <View style={styles.header}>
         <Text style={styles.title}>Patients</Text>
         <View style={styles.searchRow}>
-          <TextInput ref={searchRef} placeholder="Rechercher..." value={search} onChangeText={setSearch} style={styles.searchInput} />
+            <TextInput ref={searchRef} placeholder="Rechercher..." value={search} onChangeText={setSearch} style={styles.searchInput} />
+            <Pressable onPress={() => { setSelectedPatient(null); setEditVisible(true); }} style={({ pressed }) => [styles.addBtn, pressed && styles.addBtnPressed]} accessibilityLabel="Ajouter patient">
+              <Text style={styles.addIcon}>＋</Text>
+            </Pressable>
         </View>
       </View>
 
@@ -174,7 +177,7 @@ export default function Patients(_props: Props) {
         <Button title="Suiv" onPress={() => fetchPage(page + 1)} disabled={!pagination || !pagination.hasNextPage} />
       </View>
       <PatientDetailModal visible={detailVisible} patient={selectedPatient} onClose={() => { setDetailVisible(false); setSelectedPatient(null); }} />
-      <PatientEditModal visible={editVisible} patient={selectedPatient} onClose={() => { setEditVisible(false); setSelectedPatient(null); }} onSaved={(updated) => { setEditVisible(false); setSelectedPatient(updated); fetchPage(page); }} />
+  <PatientEditModal visible={editVisible} patient={selectedPatient} creating={!selectedPatient} onClose={() => { setEditVisible(false); setSelectedPatient(null); }} onSaved={(updated) => { setEditVisible(false); setSelectedPatient(updated); fetchPage(1); }} />
       <ConfirmModal visible={confirmVisible} title="Supprimer le patient" message="Voulez-vous vraiment supprimer ce patient ? Cette action est irréversible." onConfirm={() => confirmAndDelete()} onCancel={() => { setConfirmVisible(false); setToDeleteId(null); }} />
     </View>
   );
@@ -194,5 +197,8 @@ const styles = StyleSheet.create({
   icon: { fontSize: 16 },
   deleteBtn: { backgroundColor: 'transparent', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: '#eee', marginLeft: 4 },
   deleteIcon: { color: '#6c757d', fontSize: 16 },
+  addBtn: { marginLeft: 8, backgroundColor: '#edf7ee', borderRadius: 8, paddingHorizontal: 10, borderWidth: 1, borderColor: '#e0f0df', height: 40, justifyContent: 'center', alignItems: 'center' },
+  addIcon: { color: '#2e7d32', fontSize: 16, fontWeight: '700' },
+  addBtnPressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
   pager: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 12 }
 });

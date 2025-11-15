@@ -76,8 +76,12 @@ export default function DatePickerCalendar({ visible, initial, onClose, onSelect
       <View style={styles.backdrop}>
         <View style={styles.card}>
           <View style={styles.header}>
-            {/* year back */}
-            {mode !== 'year' ? <Pressable onPress={() => changeYear(-1)} style={styles.nav}><Text>{'«'}</Text></Pressable> : <View style={styles.nav} />}
+            {/* year back or big jump when in year mode */}
+            {mode !== 'year' ? (
+              <Pressable onPress={() => changeYear(-1)} style={styles.nav}><Text>{'«'}</Text></Pressable>
+            ) : (
+              <Pressable onPress={() => changeYear(-25)} style={styles.nav}><Text>{'«'}</Text></Pressable>
+            )}
             <Pressable onPress={() => { if (mode === 'day') changeMonth(-1); else if (mode === 'month') setMode('year'); }} style={styles.nav}><Text>{mode === 'day' ? '‹' : mode === 'month' ? '‹' : ''}</Text></Pressable>
 
             <Pressable onPress={() => { if (mode === 'day') setMode('month'); else if (mode === 'month') setMode('year'); }} style={{ flex: 1, alignItems: 'center' }}>
@@ -87,7 +91,11 @@ export default function DatePickerCalendar({ visible, initial, onClose, onSelect
             </Pressable>
 
             <Pressable onPress={() => { if (mode === 'day') changeMonth(1); else if (mode === 'month') setMode('year'); }} style={styles.nav}><Text>{mode === 'day' ? '›' : mode === 'month' ? '›' : ''}</Text></Pressable>
-            {mode !== 'year' ? <Pressable onPress={() => changeYear(1)} style={styles.nav}><Text>{'»'}</Text></Pressable> : <View style={styles.nav} />}
+            {mode !== 'year' ? (
+              <Pressable onPress={() => changeYear(1)} style={styles.nav}><Text>{'»'}</Text></Pressable>
+            ) : (
+              <Pressable onPress={() => changeYear(25)} style={styles.nav}><Text>{'»'}</Text></Pressable>
+            )}
           </View>
 
           {mode === 'day' && (
@@ -128,8 +136,9 @@ export default function DatePickerCalendar({ visible, initial, onClose, onSelect
           {mode === 'year' && (
             <ScrollView style={{ padding: 8 }}>
               {(() => {
-                const start = viewYear - 6;
-                const years = Array.from({ length: 13 }, (_, i) => start + i);
+                // show a wider range of years (25 years) centered on viewYear for faster selection
+                const start = viewYear - 12;
+                const years = Array.from({ length: 25 }, (_, i) => start + i);
                 return (
                   <View style={styles.yearGrid}>
                     {years.map((y) => (
