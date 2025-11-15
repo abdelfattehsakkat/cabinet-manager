@@ -27,7 +27,7 @@ export default function Menu({ active, onChange, onLogout }: Props) {
   } : {};
   const webBoxShadow = (shadow: string) => Platform.OS === 'web' ? { boxShadow: shadow } : {};
   const webGradient = Platform.OS === 'web' ? {
-    backgroundImage: 'linear-gradient(90deg, #1371c3ff 0%, #247852ff 100%)',
+    backgroundImage: 'linear-gradient(30deg, #20c997 0%, #0dcaf0 130%)',
     // keep the existing rounded look
     borderRadius: 18,
   } : {};
