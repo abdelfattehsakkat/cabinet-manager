@@ -15,9 +15,7 @@ export default function LoginScreen({ onLoginSuccess }: Props) {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      console.log('Attempting login', { email });
       const data = await login(email, password);
-      console.log('Login response', data);
       // store token and user info
       if (data?.token) {
         await AsyncStorage.setItem('token', data.token);
