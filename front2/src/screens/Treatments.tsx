@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from 'react';
 import useDebouncedValue from '../hooks/useDebouncedValue';
 import { View, Text, TextInput, FlatList, Pressable, StyleSheet, ActivityIndicator, Alert, Button } from 'react-native';
 import patientsApi, { Patient, PaginatedResponse } from '../api/patients';
-import treatmentsApi, { Treatment, TreatmentPaginatedResponse } from '../api/treatments';
 import PatientTreatmentsModal from '../ui/PatientTreatmentsModal';
 
 type Props = {};
@@ -22,25 +21,13 @@ export default function Treatments(_props: Props) {
   const fetchPage = async (p = 1) => {
     setLoading(true);
     try {
-      // Use treatments endpoint to populate the table like the old frontend
-      const res = await treatmentsApi.getAllTreatments(p, limit, search);
-      // Map treatments -> patients list: prefer embedded patient info if present
-      const patientsFromTreatments: Patient[] = (res.treatments || []).map((t: Treatment) => {
-        const firstName = t.patient?.firstName || (t.patientName ? t.patientName.split(' ')[0] : '');
-        const lastName = t.patient?.lastName || (t.patientName ? t.patientName.split(' ').slice(1).join(' ') : '');
-        return {
-          _id: t.patientId || t.patient?._id || t._id,
-          patientNumber: t.patient?.patientNumber || t.patientNumber,
-          firstName: firstName,
-          lastName: lastName,
-        } as Patient;
-      });
-
-      setData(patientsFromTreatments || []);
+      // Use patients API to populate one row per patient (old frontend behavior)
+      const res = await patientsApi.searchPatients(p, limit, search);
+      setData(res.patients || []);
       setPagination(res.pagination || null);
       setPage(p);
     } catch (err) {
-      console.error('Failed to fetch treatments', err);
+      console.error('Failed to fetch patients for treatments view', err);
     } finally {
       setLoading(false);
     }
