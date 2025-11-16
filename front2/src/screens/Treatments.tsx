@@ -3,6 +3,7 @@ import useDebouncedValue from '../hooks/useDebouncedValue';
 import { View, Text, TextInput, FlatList, Pressable, StyleSheet, ActivityIndicator, Alert, Button } from 'react-native';
 import patientsApi, { Patient, PaginatedResponse } from '../api/patients';
 import PatientTreatmentsModal from '../ui/PatientTreatmentsModal';
+import TreatmentDialog from '../ui/TreatmentDialog';
 
 type Props = {};
 
@@ -17,6 +18,8 @@ export default function Treatments(_props: Props) {
   const [pagination, setPagination] = useState<PaginatedResponse['pagination'] | null>(null);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [patientModalVisible, setPatientModalVisible] = useState(false);
+  const [addDialogVisible, setAddDialogVisible] = useState(false);
+  const [addDialogPatient, setAddDialogPatient] = useState<Patient | null>(null);
 
   const fetchPage = async (p = 1) => {
     setLoading(true);
@@ -51,9 +54,8 @@ export default function Treatments(_props: Props) {
   };
 
   const onAddTreatment = async (p: Patient) => {
-    // TODO: open add-treatment modal or navigate to treatment creation screen
-    Alert.alert('Ajouter soin', `Ajouter un soin pour ${p.firstName} ${p.lastName}`);
-    console.log('[Treatments] onAddTreatment', p?._id);
+    setAddDialogPatient(p);
+    setAddDialogVisible(true);
   };
 
   const renderHeader = () => (
@@ -104,7 +106,8 @@ export default function Treatments(_props: Props) {
         <Text style={{ marginHorizontal: 12 }}>{pagination ? `${pagination.currentPage} / ${pagination.totalPages}` : page}</Text>
         <Button title="Suiv" onPress={() => fetchPage(page + 1)} disabled={!pagination || !pagination.hasNextPage} />
       </View>
-      <PatientTreatmentsModal visible={patientModalVisible} patient={selectedPatient} onClose={() => { setPatientModalVisible(false); setSelectedPatient(null); }} />
+  <PatientTreatmentsModal visible={patientModalVisible} patient={selectedPatient} onClose={() => { setPatientModalVisible(false); setSelectedPatient(null); }} />
+  <TreatmentDialog visible={addDialogVisible} patient={addDialogPatient} onClose={() => { setAddDialogVisible(false); setAddDialogPatient(null); }} onSaved={() => { setAddDialogVisible(false); setAddDialogPatient(null); fetchPage(1); }} />
     </View>
   );
 }

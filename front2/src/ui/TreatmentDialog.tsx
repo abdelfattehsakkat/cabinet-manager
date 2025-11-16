@@ -14,41 +14,68 @@ export default function TreatmentDialog({ visible, patient, onClose, onSaved }: 
   const [description, setDescription] = useState('');
   const [honoraire, setHonoraire] = useState('');
   const [recu, setRecu] = useState('');
+  const [dent, setDent] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const submit = async () => {
     if (!patient) return;
+    // Basic client-side validation (matches backend requirements)
+    if (!description.trim()) {
+      Alert.alert('Validation', 'La description est requise');
+      return;
+    }
+    const dentNumber = Number(dent);
+    if (!dent || isNaN(dentNumber) || dentNumber < 1 || dentNumber > 48) {
+      Alert.alert('Validation', 'Le numéro de dent doit être un nombre entre 1 et 48');
+      return;
+    }
+
     const payload = {
       patientId: patient._id,
-      description,
+      description: description.trim(),
+      dent: dentNumber,
       honoraire: Number(honoraire) || 0,
       recu: Number(recu) || 0,
       treatmentDate: new Date().toISOString()
     };
+
+    setSaving(true);
     try {
-      await treatmentsApi.createTreatment(payload);
-      onSaved?.(payload);
-    } catch (err) {
+      const created = await treatmentsApi.createTreatment(payload);
+      onSaved?.(created);
+      // only close after the server confirmed creation
+      onClose();
+    } catch (err: any) {
       console.error('Failed creating treatment', err);
-      Alert.alert('Erreur', 'Impossible de créer le soin');
+      const msg = err?.message || 'Impossible de créer le soin';
+      Alert.alert('Erreur', msg);
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Ajouter un soin</Text>
-        <Text style={{ marginBottom: 4 }}>{patient ? `${patient.firstName} ${patient.lastName}` : ''}</Text>
-        <TextInput placeholder="Description" value={description} onChangeText={setDescription} style={styles.input} />
-        <TextInput placeholder="Honoraire" keyboardType="numeric" value={honoraire} onChangeText={setHonoraire} style={styles.input} />
-        <TextInput placeholder="Reçu" keyboardType="numeric" value={recu} onChangeText={setRecu} style={styles.input} />
+    <Modal visible={visible} animationType="fade" transparent={true} onRequestClose={onClose}>
+      <View style={styles.overlay}>
+        <View style={styles.box}>
+          <Text style={styles.title}>Ajouter un soin</Text>
+          <Text style={styles.patientName}>{patient ? `${patient.firstName} ${patient.lastName}` : ''}</Text>
 
-        <View style={{ flexDirection: 'row', marginTop: 12 }}>
-          <Pressable onPress={() => { submit(); onClose(); }} style={styles.btn}>
-            <Text style={styles.btnText}>Enregistrer</Text>
-          </Pressable>
-          <Pressable onPress={onClose} style={[styles.btn, { marginLeft: 8, backgroundColor: '#eee' }]}>
-            <Text>Annuler</Text>
-          </Pressable>
+          <TextInput placeholder="Description" value={description} onChangeText={setDescription} style={styles.input} />
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <TextInput placeholder="Dent" keyboardType="numeric" value={dent} onChangeText={setDent} style={[styles.input, { flex: 1, marginRight: 8 }]} />
+            <TextInput placeholder="Honoraire" keyboardType="numeric" value={honoraire} onChangeText={setHonoraire} style={[styles.input, { flex: 1 }]} />
+          </View>
+          <TextInput placeholder="Reçu" keyboardType="numeric" value={recu} onChangeText={setRecu} style={styles.input} />
+
+          <View style={{ flexDirection: 'row', marginTop: 12, justifyContent: 'flex-end' }}>
+            <Pressable onPress={onClose} style={[styles.btn, { marginRight: 8, backgroundColor: '#eee' }]}> 
+              <Text>Annuler</Text>
+            </Pressable>
+            <Pressable onPress={submit} style={[styles.btn, saving ? { opacity: 0.6 } : {}]} disabled={saving}>
+              <Text style={styles.btnText}>{saving ? 'Enregistrement...' : 'Enregistrer'}</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     </Modal>
@@ -56,9 +83,11 @@ export default function TreatmentDialog({ visible, patient, onClose, onSaved }: 
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
-  title: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
-  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 6, padding: 8, marginBottom: 8 },
-  btn: { backgroundColor: '#2e7d32', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 6 },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', alignItems: 'center', padding: 16 },
+  box: { width: '100%', maxWidth: 540, backgroundColor: '#fff', borderRadius: 10, padding: 16, elevation: 6 },
+  title: { fontSize: 16, fontWeight: '700', marginBottom: 6 },
+  patientName: { color: '#555', marginBottom: 8 },
+  input: { borderWidth: 1, borderColor: '#eee', borderRadius: 6, padding: 8, marginBottom: 8, backgroundColor: '#fafafa' },
+  btn: { backgroundColor: '#2e7d32', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 },
   btnText: { color: '#fff', fontWeight: '700' }
 });

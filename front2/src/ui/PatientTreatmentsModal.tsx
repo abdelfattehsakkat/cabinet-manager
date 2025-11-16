@@ -57,7 +57,10 @@ export default function PatientTreatmentsModal({ visible, patient, onClose }: Pr
   };
 
   const balanceStyle = (v: number | undefined) => {
-    return v != null && v < 0 ? { color: '#c00' } : { color: '#111' };
+    if (v == null) return { color: '#111' };
+    if (v < 0) return { color: '#c00' };
+    if (v > 0) return { color: '#138000' };
+    return { color: '#111' };
   };
 
   const onSaved = (created?: any) => {
@@ -116,8 +119,8 @@ export default function PatientTreatmentsModal({ visible, patient, onClose }: Pr
                   {(() => {
                     const totals = calculateTotals();
                     const cards = [
-                      { label: 'Total des soins', value: String(treatments.length) },
-                      { label: 'Honoraires totaux', value: `${totals.totalHonoraires}DT` },
+                      { label: 'Nb soins', value: String(treatments.length) },
+                      { label: 'Honoraires', value: `${totals.totalHonoraires}DT` },
                       { label: 'Total reçu', value: `${totals.totalRecu}DT` },
                       { label: 'Balance', value: `${totals.totalBalance}DT`, raw: totals.totalBalance }
                     ];
@@ -143,7 +146,7 @@ export default function PatientTreatmentsModal({ visible, patient, onClose }: Pr
 
                 {/* Table header */}
                 <View style={[styles.tableHeader, !isWeb && styles.tableHeaderMobile]}>
-                  <Text style={[styles.th, { flex: 1, fontSize: 12, color: '#666' }]}>Date</Text>
+                  <Text style={[styles.th, { flex: 1, fontSize: 12, color: '#666', paddingRight: 8 }]}>Date</Text>
                   <Text style={[styles.th, { flex: 1 }]}>Dent</Text>
                   <Text style={[styles.th, { flex: 6 }]}>Description</Text>
                   <Text style={[styles.th, { flex: 1, textAlign: 'right' }]}>Honoraires</Text>
@@ -157,7 +160,7 @@ export default function PatientTreatmentsModal({ visible, patient, onClose }: Pr
                         onHoverOut={() => isWeb && setHovered(null)}
                         style={[styles.tableRow, !isWeb && styles.tableRowMobile, isWeb && hovered === item._id && styles.cardHover]}
                       >
-                        <Text style={[styles.td, styles.tdDate, { flex: 1 }]}>{item.treatmentDate ? new Date(item.treatmentDate).toLocaleDateString('fr-FR') : '-'}</Text>
+                        <Text style={[styles.td, styles.tdDate, { flex: 1, paddingRight: 8 }]}>{item.treatmentDate ? new Date(item.treatmentDate).toLocaleDateString('fr-FR') : '-'}</Text>
                         <Text style={[styles.td, { flex: 1 }]}>{item.dent ?? '-'}</Text>
                         <Text style={[styles.td, { flex: 6 }]}>{item.description}</Text>
                         <Text style={[styles.td, { flex: 1, textAlign: 'right' }]}>{item.honoraire != null ? String(item.honoraire) : '-'}</Text>
@@ -217,7 +220,7 @@ const styles = StyleSheet.create({
   totalText: { fontWeight: '700' }
   ,
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap' },
-  summaryCard: { backgroundColor: '#fff', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#f2f2f2', minWidth: 140, marginRight: 8, marginBottom: 8 },
+  summaryCard: { backgroundColor: '#fff', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#f2f2f2', marginRight: 8, marginBottom: 8 },
   summaryLabel: { color: '#666', fontSize: 12 },
   summaryValue: { fontSize: 18, fontWeight: '800', marginTop: 6 },
   tableHeader: { flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#eee', marginTop: 8 },
@@ -228,11 +231,12 @@ const styles = StyleSheet.create({
   tdDate: { fontSize: 12, color: '#666' }
   ,
   sheetMobile: { width: '100%', maxWidth: '100%', marginHorizontal: 0, borderRadius: 0 },
-  summaryRowMobile: { flexDirection: 'column' },
+  // On mobile we want a compact 2x2 grid with uniform cards
+  summaryRowMobile: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'stretch' },
   tableHeaderMobile: { paddingVertical: 6 },
   tableRowMobile: { paddingVertical: 6 }
   ,
-  summaryCardMobile: { width: '48%' }
+  summaryCardMobile: { width: '48%', marginBottom: 8, alignSelf: 'stretch', minHeight: 68, justifyContent: 'space-between' }
   ,
   cardHover: { transform: [{ translateY: -4 }], shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, elevation: 6, backgroundColor: '#fff' },
   summaryAccent: { borderColor: '#e6f4ea', backgroundColor: '#fbfff9' }
