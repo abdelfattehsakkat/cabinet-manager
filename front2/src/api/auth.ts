@@ -1,8 +1,9 @@
 import config from '../config';
 
 export async function login(email: string, password: string) {
-  const API_BASE = config.getApiUrl();
-  const url = `${API_BASE}/api/auth/login`;
+  // Use API root (which already includes /api) to avoid double /api in URLs
+  const API_ROOT = config.getApiRoot();
+  const url = `${API_ROOT}/auth/login`;
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
