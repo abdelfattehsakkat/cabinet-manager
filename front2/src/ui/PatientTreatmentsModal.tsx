@@ -150,8 +150,13 @@ export default function PatientTreatmentsModal({ visible, patient, onClose }: Pr
                           styles.summaryCard,
                           isSmall ? styles.summaryCardMobile : styles.summaryCardWide,
                           hoveredSummary === idx && styles.summaryCardHover,
+                          // balance negative / positive styles
                           c.raw != null && c.raw < 0 && styles.summaryNegativeCard,
-                          c.raw != null && c.raw > 0 && styles.summaryPositiveCard
+                          c.raw != null && c.raw > 0 && styles.summaryPositiveCard,
+                          // for non-balance cards, add a subtle neutral background
+                          c.raw == null && styles.summaryNeutralCard,
+                          // always apply the blue contour last so it overrides other borderColor
+                          styles.summaryCardAccent
                         ]}
                       >
                         <Text style={[styles.summaryLabel, isSmall && styles.summaryLabelMobile]}>{c.label}</Text>
@@ -280,6 +285,10 @@ const styles = StyleSheet.create({
   summaryNegativeCard: { borderColor: '#ffdfe0', backgroundColor: '#fff6f6' }
   ,
   summaryPositiveCard: { borderColor: '#dff6e8', backgroundColor: '#f3fff7' }
+  ,
+  summaryNeutralCard: { borderColor: '#f2f2f2', backgroundColor: '#fbfbfb' }
+  ,
+  summaryCardAccent: { borderColor: '#0b4f6c', borderWidth: 1.2 }
   ,
   // Full screen mobile styles
   backdropFullMobile: { flex: 1, backgroundColor: '#fff', justifyContent: 'flex-start', padding: 0 },
