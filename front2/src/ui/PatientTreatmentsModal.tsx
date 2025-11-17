@@ -143,12 +143,15 @@ export default function PatientTreatmentsModal({ visible, patient, onClose }: Pr
                         key={c.label}
                         onHoverIn={() => isWeb && setHoveredSummary(idx)}
                         onHoverOut={() => isWeb && setHoveredSummary(null)}
+                        onPressIn={() => !isWeb && setHoveredSummary(idx)}
+                        onPressOut={() => !isWeb && setHoveredSummary(null)}
                         onPress={() => { /* no op for now */ }}
                         style={[
                           styles.summaryCard,
                           isSmall ? styles.summaryCardMobile : styles.summaryCardWide,
-                          isWeb && hoveredSummary === idx && styles.summaryCardHover,
-                          c.raw != null && c.raw < 0 && styles.summaryNegativeCard
+                          hoveredSummary === idx && styles.summaryCardHover,
+                          c.raw != null && c.raw < 0 && styles.summaryNegativeCard,
+                          c.raw != null && c.raw > 0 && styles.summaryPositiveCard
                         ]}
                       >
                         <Text style={[styles.summaryLabel, isSmall && styles.summaryLabelMobile]}>{c.label}</Text>
@@ -272,8 +275,11 @@ const styles = StyleSheet.create({
   cardHover: { transform: [{ translateY: -4 }], shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, elevation: 6, backgroundColor: '#fff' },
   summaryAccent: { borderColor: '#e6f4ea', backgroundColor: '#fbfff9' }
   ,
-  summaryCardHover: { transform: [{ translateY: -6 }], shadowColor: '#000', shadowOpacity: 0.14, shadowRadius: 10, elevation: 8, backgroundColor: '#fff' },
+  summaryCardHover: { transform: [{ translateY: -6 }, { scale: 1.02 }], shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, elevation: 10, backgroundColor: '#fff' },
+  summaryCardPressed: { transform: [{ translateY: -2 }, { scale: 0.995 }], shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 6, elevation: 4, backgroundColor: '#fff' },
   summaryNegativeCard: { borderColor: '#ffdfe0', backgroundColor: '#fff6f6' }
+  ,
+  summaryPositiveCard: { borderColor: '#dff6e8', backgroundColor: '#f3fff7' }
   ,
   // Full screen mobile styles
   backdropFullMobile: { flex: 1, backgroundColor: '#fff', justifyContent: 'flex-start', padding: 0 },
