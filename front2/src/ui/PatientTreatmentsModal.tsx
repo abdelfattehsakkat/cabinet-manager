@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, View, Text, StyleSheet, FlatList, ActivityIndicator, Pressable, Alert, Platform } from 'react-native';
+import { Modal, View, Text, StyleSheet, FlatList, ActivityIndicator, Pressable, Alert, Platform, Dimensions } from 'react-native';
 import treatmentsApi, { Treatment } from '../api/treatments';
 import { Patient } from '../api/patients';
 import TreatmentDialog from './TreatmentDialog';
@@ -92,11 +92,26 @@ export default function PatientTreatmentsModal({ visible, patient, onClose }: Pr
   };
 
   const isWeb = Platform.OS === 'web';
+  const [windowWidth, setWindowWidth] = useState(Dimensions.get('window').width);
+
+  useEffect(() => {
+    const onChange = ({ window }: { window: { width: number } }) => setWindowWidth(window.width);
+    const sub: any = Dimensions.addEventListener ? Dimensions.addEventListener('change', onChange) : Dimensions.addEventListener('change', onChange);
+    return () => {
+      try {
+        if (sub && sub.remove) sub.remove();
+      } catch (e) { /* ignore */ }
+    };
+  }, []);
+
+  // Consider small screens (mobile or narrow web) as full mobile modal
+  const isSmall = windowWidth < 700;
+  const isFullMobile = isSmall || (!isWeb && Platform.OS !== 'web');
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <View style={[styles.sheet, isWeb ? styles.sheetWeb : styles.sheetMobile]}>
+    <Modal visible={visible} animationType={isFullMobile ? 'slide' : 'slide'} transparent={!isFullMobile} onRequestClose={onClose}>
+      <View style={[styles.backdrop, isFullMobile && styles.backdropFullMobile]}>
+        <View style={[styles.sheet, isWeb ? styles.sheetWeb : styles.sheetMobile, isFullMobile && styles.sheetMobileFull]}>
           <View style={styles.sheetHeader}>
             <View style={styles.avatar}><Text style={styles.avatarText}>{patient?.lastName?.charAt(0) ?? 'P'}</Text></View>
             <View style={{ flex: 1, marginLeft: 12 }}>
@@ -109,19 +124,18 @@ export default function PatientTreatmentsModal({ visible, patient, onClose }: Pr
             </View>
           </View>
 
-          <View style={styles.body}>
+          <View style={[styles.body, isFullMobile && styles.bodyFull]}>
             {loading && <ActivityIndicator />}
 
                 {!loading && (
               <>
                 {/* Summary cards */}
-                <View style={[styles.summaryRow, !isWeb && styles.summaryRowMobile]}>
+                <View style={[styles.summaryRow, !isWeb && styles.summaryRowMobile, !isSmall && styles.summaryRowWideCenter]}>
                   {(() => {
                     const totals = calculateTotals();
                     const cards = [
-                      { label: 'Nb soins', value: String(treatments.length) },
                       { label: 'Honoraires', value: `${totals.totalHonoraires}DT` },
-                      { label: 'Total reçu', value: `${totals.totalRecu}DT` },
+                      { label: 'Reçu', value: `${totals.totalRecu}DT` },
                       { label: 'Balance', value: `${totals.totalBalance}DT`, raw: totals.totalBalance }
                     ];
                     return cards.map((c, idx) => (
@@ -132,13 +146,13 @@ export default function PatientTreatmentsModal({ visible, patient, onClose }: Pr
                         onPress={() => { /* no op for now */ }}
                         style={[
                           styles.summaryCard,
-                          !isWeb && styles.summaryCardMobile,
+                          isSmall ? styles.summaryCardMobile : styles.summaryCardWide,
                           isWeb && hoveredSummary === idx && styles.summaryCardHover,
                           c.raw != null && c.raw < 0 && styles.summaryNegativeCard
                         ]}
                       >
-                        <Text style={styles.summaryLabel}>{c.label}</Text>
-                        <Text style={[styles.summaryValue, c.raw != null ? balanceStyle(c.raw) : {}]}>{c.value}</Text>
+                        <Text style={[styles.summaryLabel, isSmall && styles.summaryLabelMobile]}>{c.label}</Text>
+                        <Text style={[styles.summaryValue, isSmall && styles.summaryValueMobile, c.raw != null ? balanceStyle(c.raw) : {}]}>{c.value}</Text>
                       </Pressable>
                     ));
                   })()}
@@ -146,12 +160,22 @@ export default function PatientTreatmentsModal({ visible, patient, onClose }: Pr
 
                 {/* Table header */}
                 <View style={[styles.tableHeader, !isWeb && styles.tableHeaderMobile]}>
-                  <Text style={[styles.th, { flex: 1, fontSize: 12, color: '#666', paddingRight: 8 }]}>Date</Text>
-                  <Text style={[styles.th, { flex: 1 }]}>Dent</Text>
-                  <Text style={[styles.th, { flex: 6 }]}>Description</Text>
-                  <Text style={[styles.th, { flex: 1, textAlign: 'right' }]}>Honoraires</Text>
-                  <Text style={[styles.th, { flex: 1, textAlign: 'right' }]}>Reçu</Text>
-                  <Text style={[styles.th, { flex: 1, textAlign: 'right' }]}>Balance</Text>
+                  {(() => {
+                    const dateFlex = isSmall ? 1 : 1;
+                    const dentFlex = isSmall ? 0.9 : 1;
+                    const descFlex = isSmall ? 4 : 6;
+                    const numFlex = isSmall ? 1.2 : 1;
+                    return (
+                      <>
+                        <Text style={[styles.th, { flex: dateFlex, fontSize: 12, color: '#666', paddingRight: 8 }]}>Date</Text>
+                        <Text style={[styles.th, { flex: dentFlex }]}>Dent</Text>
+                        <Text style={[styles.th, { flex: descFlex }]}>Description</Text>
+                        <Text style={[styles.th, { flex: numFlex, textAlign: 'left' }]}>Honoraires</Text>
+                        <Text style={[styles.th, { flex: numFlex, textAlign: 'left' }]}>Reçu</Text>
+                        <Text style={[styles.th, { flex: numFlex, textAlign: 'left' }]}>Balance</Text>
+                      </>
+                    );
+                  })()}
                 </View>
 
                     <FlatList data={treatments} keyExtractor={t => t._id} renderItem={({ item }) => (
@@ -160,17 +184,23 @@ export default function PatientTreatmentsModal({ visible, patient, onClose }: Pr
                         onHoverOut={() => isWeb && setHovered(null)}
                         style={[styles.tableRow, !isWeb && styles.tableRowMobile, isWeb && hovered === item._id && styles.cardHover]}
                       >
-                        <Text style={[styles.td, styles.tdDate, { flex: 1, paddingRight: 8 }]}>{item.treatmentDate ? new Date(item.treatmentDate).toLocaleDateString('fr-FR') : '-'}</Text>
-                        <Text style={[styles.td, { flex: 1 }]}>{item.dent ?? '-'}</Text>
-                        <Text style={[styles.td, { flex: 6 }]}>{item.description}</Text>
-                        <Text style={[styles.td, { flex: 1, textAlign: 'right' }]}>{item.honoraire != null ? String(item.honoraire) : '-'}</Text>
-                        <Text style={[styles.td, { flex: 1, textAlign: 'right' }]}>{item.recu != null ? String(item.recu) : '-'}</Text>
-                        {
-                          (() => {
-                            const bal = (item.recu || 0) - (item.honoraire || 0);
-                            return <Text style={[styles.td, { flex: 1, textAlign: 'right' }, balanceStyle(bal)]}>{String(bal)}</Text>;
-                          })()
-                        }
+                        {(() => {
+                          const dateFlex = isSmall ? 1 : 1;
+                          const dentFlex = isSmall ? 0.9 : 1;
+                          const descFlex = isSmall ? 4 : 6;
+                          const numFlex = isSmall ? 1.2 : 1;
+                          const bal = (item.recu || 0) - (item.honoraire || 0);
+                          return (
+                            <>
+                              <Text style={[styles.td, styles.tdDate, { flex: dateFlex, paddingRight: 8 }]}>{item.treatmentDate ? new Date(item.treatmentDate).toLocaleDateString('fr-FR') : '-'}</Text>
+                              <Text style={[styles.td, { flex: dentFlex }]}>{item.dent ?? '-'}</Text>
+                              <Text style={[styles.td, { flex: descFlex }]}>{item.description}</Text>
+                              <Text style={[styles.td, { flex: numFlex, textAlign: 'left' }]}>{item.honoraire != null ? String(item.honoraire) : '-'}</Text>
+                              <Text style={[styles.td, { flex: numFlex, textAlign: 'left' }]}>{item.recu != null ? String(item.recu) : '-'}</Text>
+                              <Text style={[styles.td, { flex: numFlex, textAlign: 'left' }, balanceStyle(bal)]}>{String(bal)}</Text>
+                            </>
+                          );
+                        })()}
                       </Pressable>
                     )} ItemSeparatorComponent={() => <View style={{ height: 1, backgroundColor: '#f6f6f6' }} />} />
               </>
@@ -195,8 +225,7 @@ const styles = StyleSheet.create({
   headerCell: { fontWeight: '700' },
   row: { flexDirection: 'row', paddingVertical: 8, alignItems: 'center', paddingHorizontal: 8 },
   cell: { paddingVertical: 2 },
-  totals: { paddingVertical: 12, borderTopWidth: 1, borderTopColor: '#eee', marginTop: 8 }
-  ,
+  totals: { paddingVertical: 12, borderTopWidth: 1, borderTopColor: '#eee', marginTop: 8 },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', padding: 12 },
   sheet: { backgroundColor: '#fff', borderRadius: 10, maxHeight: '80%', width: '90%', maxWidth: 900, alignSelf: 'center', overflow: 'hidden' },
   sheetWeb: { width: '80%', maxWidth: 1100 },
@@ -220,27 +249,34 @@ const styles = StyleSheet.create({
   totalText: { fontWeight: '700' }
   ,
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap' },
-  summaryCard: { backgroundColor: '#fff', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#f2f2f2', marginRight: 8, marginBottom: 8 },
-  summaryLabel: { color: '#666', fontSize: 12 },
-  summaryValue: { fontSize: 18, fontWeight: '800', marginTop: 6 },
+  summaryCard: { backgroundColor: '#fff', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#f2f2f2', marginRight: 8, marginBottom: 8, alignItems: 'center', justifyContent: 'center' },
+  // On wide screens, center the summary cards and reduce spacing between them
+  summaryRowWideCenter: { justifyContent: 'center' },
+  summaryCardWide: { width: 180, marginHorizontal: 6, padding: 14 },
+  summaryLabel: { color: '#666', fontSize: 12, textAlign: 'center' },
+  summaryValue: { fontSize: 18, fontWeight: '800', marginTop: 6, textAlign: 'center' },
   tableHeader: { flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#eee', marginTop: 8 },
-  th: { fontWeight: '700', color: '#444' },
-  td: { paddingVertical: 10, color: '#222' },
-  tableRow: { flexDirection: 'row', paddingHorizontal: 8, alignItems: 'center' }
-  ,
-  tdDate: { fontSize: 12, color: '#666' }
-  ,
+  th: { fontWeight: '700', color: '#444', paddingHorizontal: 8 },
+  td: { paddingVertical: 10, color: '#222', paddingHorizontal: 8 },
+  tableRow: { flexDirection: 'row', paddingHorizontal: 8, alignItems: 'center' },
+  tdDate: { fontSize: 12, color: '#666' },
   sheetMobile: { width: '100%', maxWidth: '100%', marginHorizontal: 0, borderRadius: 0 },
   // On mobile we want a compact 2x2 grid with uniform cards
-  summaryRowMobile: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'stretch' },
+  summaryRowMobile: { flexDirection: 'row', flexWrap: 'nowrap', justifyContent: 'center', alignItems: 'center' },
   tableHeaderMobile: { paddingVertical: 6 },
-  tableRowMobile: { paddingVertical: 6 }
-  ,
-  summaryCardMobile: { width: '48%', marginBottom: 8, alignSelf: 'stretch', minHeight: 68, justifyContent: 'space-between' }
-  ,
+  tableRowMobile: { paddingVertical: 6 },
+  // More compact mobile cards to allow 3 cards on one line on smaller screens
+  summaryCardMobile: { width: '26%', marginBottom: 4, alignSelf: 'center', minHeight: 30, padding: 4, justifyContent: 'center', marginHorizontal: 4, minWidth: 0 },
+  summaryLabelMobile: { fontSize: 9 },
+  summaryValueMobile: { fontSize: 12, marginTop: 2 },
   cardHover: { transform: [{ translateY: -4 }], shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, elevation: 6, backgroundColor: '#fff' },
   summaryAccent: { borderColor: '#e6f4ea', backgroundColor: '#fbfff9' }
   ,
   summaryCardHover: { transform: [{ translateY: -6 }], shadowColor: '#000', shadowOpacity: 0.14, shadowRadius: 10, elevation: 8, backgroundColor: '#fff' },
   summaryNegativeCard: { borderColor: '#ffdfe0', backgroundColor: '#fff6f6' }
+  ,
+  // Full screen mobile styles
+  backdropFullMobile: { flex: 1, backgroundColor: '#fff', justifyContent: 'flex-start', padding: 0 },
+  sheetMobileFull: { width: '100%', height: '100%', maxWidth: '100%', borderRadius: 0 },
+  bodyFull: { padding: 12, flex: 1 }
 });
