@@ -20,8 +20,7 @@
     "@fullcalendar/daygrid": "^6.1.8",
     "@fullcalendar/timegrid": "^6.1.8",
     "@fullcalendar/interaction": "^6.1.8",
-    "@fullcalendar/core": "^6.1.8",
-    "@fullcalendar/core/locales/fr": "^6.1.8"
+    "@fullcalendar/core": "^6.1.8"
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
