@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Modal, View, Text, TextInput, Pressable, StyleSheet, Platform, FlatList } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../api/client';
 import { searchPatients, createPatient, Patient } from '../api/patients';
 
@@ -71,6 +72,21 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
     if (!firstName || !lastName || !dateStr) return;
     setLoading(true);
     try {
+      // Get logged-in user (doctor) ID
+      const userRaw = await AsyncStorage.getItem('user');
+      if (!userRaw) {
+        console.error('No logged-in user found');
+        alert('Erreur: utilisateur non connecté');
+        return;
+      }
+      const user = JSON.parse(userRaw);
+      const doctorId = user._id || user.id;
+      if (!doctorId) {
+        console.error('User has no ID');
+        alert('Erreur: ID utilisateur manquant');
+        return;
+      }
+
       let patient = selectedPatient;
       if (!patient) {
         // create patient first
@@ -79,6 +95,7 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
       }
 
       const payload: any = {
+        doctor: doctorId,
         patientId: patient._id,
         patientFirstName: patient.firstName,
         patientLastName: patient.lastName,
