@@ -7,6 +7,7 @@ let FullCalendar: any = null;
 let dayGridPlugin: any = null;
 let timeGridPlugin: any = null;
 let interactionPlugin: any = null;
+let frLocale: any = null;
 
 if (Platform.OS === 'web') {
   // dynamic require so native bundles don't include it
@@ -15,6 +16,12 @@ if (Platform.OS === 'web') {
   dayGridPlugin = require('@fullcalendar/daygrid').default;
   timeGridPlugin = require('@fullcalendar/timegrid').default;
   interactionPlugin = require('@fullcalendar/interaction').default;
+  try {
+    frLocale = require('@fullcalendar/core/locales/fr').default;
+  } catch (e) {
+    // fallback: leave frLocale null
+    frLocale = null;
+  }
 }
 
 export default function CalendarScreen() {
@@ -59,7 +66,7 @@ export default function CalendarScreen() {
   const renderItem = ({ item }: { item: Appointment }) => {
     const d = new Date(item.date);
     const local = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
-    const time = `${local.getHours().toString().padStart(2, '0')}:${local.getMinutes().toString().padStart(2, '0')}`;
+    const time = local.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false });
     return (
       <Pressable style={styles.item}>
         <Text style={styles.itemTitle}>{time} — {item.patientName || `${item.patientFirstName} ${item.patientLastName}`}</Text>
@@ -68,9 +75,14 @@ export default function CalendarScreen() {
     );
   };
 
-  const renderSectionHeader = ({ section }: any) => (
-    <View style={styles.sectionHeader}><Text style={styles.sectionHeaderText}>{section.title}</Text></View>
-  );
+  const renderSectionHeader = ({ section }: any) => {
+    // section.title is a Date string; format in French: 'lundi 18 novembre 2025'
+    const d = new Date(section.title);
+    const formatted = d.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    return (
+      <View style={styles.sectionHeader}><Text style={styles.sectionHeaderText}>{formatted}</Text></View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -93,18 +105,21 @@ export default function CalendarScreen() {
             <FullCalendar
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
               initialView="timeGridWeek"
+              locale={frLocale || 'fr'}
               headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }}
+              buttonText={{ today: 'Aujourd\'hui', month: 'Mois', week: 'Semaine', day: 'Jour', list: 'Liste' }}
               events={appointments.map(a => {
                 const d = new Date(a.date);
                 const local = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
                 const end = new Date(local.getTime() + ((a.duration || 30) * 60000));
                 return {
                   id: a._id,
-                  title: a.patientName || `${a.patientFirstName} ${a.patientLastName}`,
+                  title: `${a.patientName || `${a.patientFirstName} ${a.patientLastName}`}`,
                   start: local,
                   end,
                 };
               })}
+              eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
               height={600}
             />
           </div>
