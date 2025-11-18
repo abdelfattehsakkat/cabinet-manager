@@ -15,6 +15,8 @@ type Props = {
 export default function AppointmentModal({ visible, initial, initialDuration = 30, onClose, onCreated }: Props) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [dateStr, setDateStr] = useState(initial || '');
   const [duration, setDuration] = useState(String(initialDuration));
   const [type, setType] = useState('Consultation');
@@ -37,6 +39,8 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
       setSelectedPatient(null);
       setFirstName('');
       setLastName('');
+      setDateOfBirth('');
+      setPhoneNumber('');
       setType('Consultation');
       setLoading(false);
     }
@@ -89,8 +93,15 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
 
       let patient = selectedPatient;
       if (!patient) {
-        // create patient first
-        const created = await createPatient({ firstName, lastName });
+        // create patient first - dateOfBirth is required by backend
+        // Use provided date or default to a placeholder date
+        const dob = dateOfBirth ? new Date(dateOfBirth).toISOString() : new Date('2000-01-01').toISOString();
+        const created = await createPatient({ 
+          firstName, 
+          lastName, 
+          dateOfBirth: dob,
+          phoneNumber: phoneNumber || undefined
+        });
         patient = created;
       }
 
@@ -189,7 +200,7 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
 
             {!selectedPatient && (
               <View style={{ marginBottom: 16, zIndex: 10 }}>
-                <Text style={styles.label}>Prénom</Text>
+                <Text style={styles.label}>Prénom *</Text>
                 <TextInput 
                   style={styles.input} 
                   value={firstName} 
@@ -198,7 +209,7 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
                   autoCorrect={false}
                   autoCapitalize="words"
                 />
-                <Text style={styles.label}>Nom</Text>
+                <Text style={styles.label}>Nom *</Text>
                 <TextInput 
                   style={styles.input} 
                   value={lastName} 
@@ -206,6 +217,25 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
                   autoComplete="off"
                   autoCorrect={false}
                   autoCapitalize="words"
+                />
+                <Text style={styles.label}>Date de naissance (optionnel)</Text>
+                <TextInput 
+                  style={styles.input} 
+                  value={dateOfBirth} 
+                  onChangeText={setDateOfBirth}
+                  placeholder="AAAA-MM-JJ"
+                  autoComplete="off"
+                  autoCorrect={false}
+                />
+                <Text style={styles.label}>Téléphone (optionnel)</Text>
+                <TextInput 
+                  style={styles.input} 
+                  value={phoneNumber} 
+                  onChangeText={setPhoneNumber}
+                  placeholder="06 12 34 56 78"
+                  autoComplete="off"
+                  autoCorrect={false}
+                  keyboardType="phone-pad"
                 />
               </View>
             )}
