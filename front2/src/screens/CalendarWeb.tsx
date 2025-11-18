@@ -20,9 +20,10 @@ const frLocale = (typeof window !== 'undefined') ? require('@fullcalendar/core/l
 type Props = {
   appointments: Appointment[];
   onSelect?: (a: Appointment) => void;
+  onCreate?: (initial?: string | null) => void;
 };
 
-export default function CalendarWeb({ appointments, onSelect }: Props) {
+export default function CalendarWeb({ appointments, onSelect, onCreate }: Props) {
   // compute today's appointments for the left summary
   const todayKey = new Date().toDateString();
   const todays = appointments.filter(a => {
@@ -78,7 +79,7 @@ export default function CalendarWeb({ appointments, onSelect }: Props) {
       </aside>
 
       <main style={{ flex: 1, maxWidth: 980 }}>
-        <div ref={calendarContainerRef} style={{ height: 'calc(100vh - 160px)', minHeight: 480 }}>
+        <div ref={calendarContainerRef} style={{ height: 'calc(100vh - 160px)', minHeight: 480, position: 'relative' }}>
           {/* @ts-ignore */}
           <FullCalendar
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -93,6 +94,15 @@ export default function CalendarWeb({ appointments, onSelect }: Props) {
             slotLabelInterval={'01:00:00'}
             slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
             allDaySlot={false}
+            selectable={true}
+            dateClick={(info: any) => {
+              // info.dateStr is an ISO-ish string in local timezone
+              onCreate && onCreate(info.dateStr);
+            }}
+            select={(info: any) => {
+              // selection of a timespan
+              onCreate && onCreate(info.startStr);
+            }}
             expandRows={true}
             contentHeight={'auto'}
             events={appointments.map(a => {
@@ -105,6 +115,11 @@ export default function CalendarWeb({ appointments, onSelect }: Props) {
             eventClick={(info: any) => onSelect && onSelect(info.event.extendedProps?.appointment)}
             height={computedHeight || '100%'}
           />
+
+          {/* floating create button inside web calendar */}
+          {onCreate && (
+            <button onClick={() => onCreate && onCreate(null)} style={{ position: 'absolute', right: 20, bottom: 20, background: '#1976d2', color: '#fff', border: 'none', width: 52, height: 52, borderRadius: 26, fontSize: 22, cursor: 'pointer' }}>＋</button>
+          )}
         </div>
       </main>
     </div>
