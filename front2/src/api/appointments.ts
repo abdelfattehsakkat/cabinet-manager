@@ -10,6 +10,7 @@ export type Appointment = {
   date: string;
   duration?: number;
   type?: string;
+  status?: string;
   notes?: string;
 };
 

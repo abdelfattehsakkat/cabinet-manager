@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Platform, useWindowDimensions, Modal, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Platform, useWindowDimensions, Modal, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import ProfileMenu from './ProfileMenu';
 
 type Props = {
   active: string;
   onChange: (route: any) => void;
   onLogout?: () => void;
+  onSearch?: (query: string) => void;
 };
 
-export default function Menu({ active, onChange, onLogout }: Props) {
+export default function Menu({ active, onChange, onLogout, onSearch }: Props) {
   const [profileOpen, setProfileOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
 
   const { width } = useWindowDimensions();
   const isSmall = width < 480;
@@ -18,6 +21,19 @@ export default function Menu({ active, onChange, onLogout }: Props) {
 
   // For hover effect on web
   const [hovered, setHovered] = useState<string | null>(null);
+
+  const handleSearch = (text: string) => {
+    setSearchQuery(text);
+    onSearch && onSearch(text);
+  };
+
+  const menuItems = [
+    { key: 'home', label: 'Accueil', icon: '🏠' },
+    { key: 'patients', label: 'Patients', icon: '👥' },
+    { key: 'treatments', label: 'Soins', icon: '💉' },
+    { key: 'calendar', label: 'Calendrier', icon: '📅' },
+    { key: 'manager', label: 'Manager', icon: '⚙️' },
+  ];
 
   // Web-only style helpers
   const webTransition = Platform.OS === 'web' ? {
@@ -44,37 +60,51 @@ export default function Menu({ active, onChange, onLogout }: Props) {
           </TouchableOpacity>
         </View>
       ) : (
-        <View style={[styles.left, isSmall && styles.leftWrap]}>
-          {[
-            { key: 'patients', label: 'Patients' },
-            { key: 'treatments', label: 'Soins' },
-            { key: 'calendar', label: 'Calendrier' },
-            { key: 'manager', label: 'Manager' },
-          ].map(tab => {
-            const isActive = active === tab.key;
-            const isHovered = hovered === tab.key && Platform.OS === 'web';
-            const isWeb = Platform.OS === 'web';
-            return (
-              <Pressable
-                key={tab.key}
-                onPress={() => onChange(tab.key)}
-                onHoverIn={() => isWeb && setHovered(tab.key)}
-                onHoverOut={() => isWeb && setHovered(null)}
-                style={({ pressed }) => [
-                  styles.tabItem,
-                  isSmall && styles.itemSmall,
-                  pressed && styles.pressed,
-                  isHovered ? { backgroundColor: 'rgba(255,255,255,0.04)' } : undefined,
-                ]}
-              >
-                <View style={{ alignItems: 'center' }}>
-                  <Text style={[styles.tabText, isSmall && styles.text]}>{tab.label}</Text>
-                  <View style={[styles.tabUnderline, isActive && styles.tabUnderlineActive]} />
-                </View>
-              </Pressable>
-            );
-          })}
-        </View>
+        <>
+          <View style={[styles.left, isSmall && styles.leftWrap]}>
+            {menuItems.map(tab => {
+              const isActive = active === tab.key;
+              const isHovered = hovered === tab.key && Platform.OS === 'web';
+              const isWeb = Platform.OS === 'web';
+              return (
+                <Pressable
+                  key={tab.key}
+                  onPress={() => onChange(tab.key)}
+                  onHoverIn={() => isWeb && setHovered(tab.key)}
+                  onHoverOut={() => isWeb && setHovered(null)}
+                  style={({ pressed }) => [
+                    styles.tabItem,
+                    isSmall && styles.itemSmall,
+                    pressed && styles.pressed,
+                    isHovered ? { backgroundColor: 'rgba(255,255,255,0.04)' } : undefined,
+                  ]}
+                >
+                  <View style={{ alignItems: 'center' }}>
+                    <View style={styles.tabContent}>
+                      <Text style={styles.tabIcon}>{tab.icon}</Text>
+                      <Text style={[styles.tabText, isSmall && styles.text]}>{tab.label}</Text>
+                    </View>
+                    <View style={[styles.tabUnderline, isActive && styles.tabUnderlineActive]} />
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {/* Search bar for web */}
+          <View style={styles.searchContainer}>
+            <Text style={styles.searchIcon}>🔍</Text>
+            <TextInput
+              style={[styles.searchInput, searchFocused && styles.searchInputFocused]}
+              placeholder="Rechercher..."
+              placeholderTextColor="rgba(255,255,255,0.5)"
+              value={searchQuery}
+              onChangeText={handleSearch}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
+            />
+          </View>
+        </>
       )}
       
 
@@ -107,18 +137,13 @@ export default function Menu({ active, onChange, onLogout }: Props) {
               </TouchableOpacity>
             </View>
             <ScrollView>
-              {[
-                { key: 'patients', label: 'Patients' },
-                { key: 'treatments', label: 'Soins' },
-                { key: 'calendar', label: 'Calendrier' },
-                { key: 'manager', label: 'Manager' },
-              ].map(tab => (
+              {menuItems.map(tab => (
                 <Pressable
                   key={tab.key}
                   onPress={() => { onChange(tab.key); setHamburgerOpen(false); }}
                   style={[styles.item, styles.itemSmall, { marginVertical: 6, width: '100%', backgroundColor: 'transparent' }]}
                 >
-                  <Text style={styles.modalItemText}>{tab.label}</Text>
+                  <Text style={styles.modalItemText}>{tab.icon} {tab.label}</Text>
                 </Pressable>
               ))}
 
@@ -213,9 +238,33 @@ const styles = StyleSheet.create({
 
   // Tab style (web)
   tabItem: { paddingVertical: 10, paddingHorizontal: 14, marginRight: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent' },
-  tabText: { color: '#fff', fontWeight: '600', fontSize: 18 },
+  tabContent: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  tabIcon: { fontSize: 18 },
+  tabText: { color: '#fff', fontWeight: '600', fontSize: 16 },
   tabUnderline: { height: 3, width: '100%', backgroundColor: 'transparent', marginTop: 6, borderRadius: 3 },
   tabUnderlineActive: { backgroundColor: 'rgba(255,255,255,0.9)' },
+
+  // Search bar
+  searchContainer: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: 'rgba(255,255,255,0.12)', 
+    borderRadius: 20, 
+    paddingHorizontal: 12, 
+    paddingVertical: 6,
+    marginRight: 12,
+    minWidth: 200,
+  },
+  searchIcon: { fontSize: 16, marginRight: 6 },
+  searchInput: { 
+    flex: 1, 
+    color: '#fff', 
+    fontSize: 14,
+    ...(Platform.OS === 'web' && { outlineStyle: 'none' as any }),
+  },
+  searchInputFocused: {
+    backgroundColor: 'rgba(255,255,255,0.02)',
+  },
 
   // Pills style (web)
   pill: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.08)' },
