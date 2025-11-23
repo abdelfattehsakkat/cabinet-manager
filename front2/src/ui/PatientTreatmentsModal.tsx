@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, View, Text, StyleSheet, FlatList, ActivityIndicator, Pressable, Alert, Platform, Dimensions } from 'react-native';
+import { Modal, View, Text, StyleSheet, FlatList, ActivityIndicator, Pressable, Alert, Platform, Dimensions, TouchableOpacity, ScrollView } from 'react-native';
 import treatmentsApi, { Treatment } from '../api/treatments';
 import { Patient } from '../api/patients';
 import TreatmentDialog from './TreatmentDialog';
 import ConfirmModal from './ConfirmModal';
-
-// Modern card-based modal for patient treatments
 
 type Props = {
   visible: boolean;
@@ -22,8 +20,16 @@ export default function PatientTreatmentsModal({ visible, patient, onClose }: Pr
   const [dialogVisible, setDialogVisible] = useState(false);
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [toDeleteId, setToDeleteId] = useState<string | null>(null);
-  const [hovered, setHovered] = useState<string | null>(null);
-  const [hoveredSummary, setHoveredSummary] = useState<number | null>(null);
+  const [editTreatment, setEditTreatment] = useState<Treatment | null>(null);
+
+  const [windowWidth, setWindowWidth] = useState(Dimensions.get('window').width);
+  const isWeb = windowWidth >= 768;
+
+  useEffect(() => {
+    const onChange = ({ window }: { window: { width: number } }) => setWindowWidth(window.width);
+    const subscription = Dimensions.addEventListener('change', onChange);
+    return () => subscription?.remove();
+  }, []);
 
   const fetch = async (p = 1) => {
     if (!patient) return;
@@ -46,6 +52,7 @@ export default function PatientTreatmentsModal({ visible, patient, onClose }: Pr
     else {
       setTreatments([]);
       setPagination(null);
+      setEditTreatment(null);
     }
   }, [visible, patient]);
 
@@ -56,16 +63,9 @@ export default function PatientTreatmentsModal({ visible, patient, onClose }: Pr
     return { totalHonoraires, totalRecu, totalBalance };
   };
 
-  const balanceStyle = (v: number | undefined) => {
-    if (v == null) return { color: '#111' };
-    if (v < 0) return { color: '#c00' };
-    if (v > 0) return { color: '#138000' };
-    return { color: '#111' };
-  };
-
-  const onSaved = (created?: any) => {
+  const onSaved = () => {
     setDialogVisible(false);
-    // reload
+    setEditTreatment(null);
     fetch(1);
   };
 
@@ -74,14 +74,13 @@ export default function PatientTreatmentsModal({ visible, patient, onClose }: Pr
     setConfirmVisible(true);
   };
 
-  const doDelete = async (id?: string | null) => {
-    const target = id ?? toDeleteId;
-    if (!target) return;
+  const doDelete = async () => {
+    if (!toDeleteId) return;
     setConfirmVisible(false);
-    setToDeleteId(null);
     setLoading(true);
     try {
-      await treatmentsApi.deleteTreatment(target);
+      await treatmentsApi.deleteTreatment(toDeleteId);
+      setToDeleteId(null);
       fetch(1);
     } catch (err) {
       console.error('Delete failed', err);
@@ -91,132 +90,231 @@ export default function PatientTreatmentsModal({ visible, patient, onClose }: Pr
     }
   };
 
-  const isWeb = Platform.OS === 'web';
-  const [windowWidth, setWindowWidth] = useState(Dimensions.get('window').width);
+  const getAvatarColor = (name?: string) => {
+    if (!name) return '#2e7d32';
+    const colors = ['#1976d2', '#2e7d32', '#9c27b0', '#d32f2f', '#f57c00', '#0288d1', '#c2185b'];
+    return colors[name.charCodeAt(0) % colors.length];
+  };
 
-  useEffect(() => {
-    const onChange = ({ window }: { window: { width: number } }) => setWindowWidth(window.width);
-    const sub: any = Dimensions.addEventListener ? Dimensions.addEventListener('change', onChange) : Dimensions.addEventListener('change', onChange);
-    return () => {
-      try {
-        if (sub && sub.remove) sub.remove();
-      } catch (e) { /* ignore */ }
-    };
-  }, []);
+  const getInitials = (firstName?: string, lastName?: string) => {
+    const f = firstName?.charAt(0) || '';
+    const l = lastName?.charAt(0) || '';
+    return (f + l).toUpperCase() || 'P';
+  };
 
-  // Consider small screens (mobile or narrow web) as full mobile modal
-  const isSmall = windowWidth < 700;
-  const isFullMobile = isSmall || (!isWeb && Platform.OS !== 'web');
+  const totals = calculateTotals();
+
+  // Render for Web: Modern Table
+  const renderWebTable = () => (
+    <View style={styles.tableContainer}>
+      <View style={styles.tableHeader}>
+        <Text style={[styles.tableHeaderText, { flex: 1.2 }]}>Date</Text>
+        <Text style={[styles.tableHeaderText, { flex: 0.8 }]}>Dent</Text>
+        <Text style={[styles.tableHeaderText, { flex: 3 }]}>Description</Text>
+        <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>Honoraires</Text>
+        <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>Reçu</Text>
+        <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>Balance</Text>
+        <View style={{ width: 100 }} />
+      </View>
+      <ScrollView style={{ maxHeight: 400 }}>
+        {treatments.map((item) => {
+          const balance = (item.recu || 0) - (item.honoraire || 0);
+          return (
+            <View key={item._id} style={styles.tableRow}>
+              <Text style={[styles.tableCell, { flex: 1.2 }]}>
+                {item.treatmentDate ? new Date(item.treatmentDate).toLocaleDateString('fr-FR') : '-'}
+              </Text>
+              <Text style={[styles.tableCell, { flex: 0.8, fontWeight: '600' }]}>
+                {item.dent ?? '-'}
+              </Text>
+              <Text style={[styles.tableCell, { flex: 3 }]} numberOfLines={2}>
+                {item.description}
+              </Text>
+              <Text style={[styles.tableCell, styles.tableCellNumber, { flex: 1 }]}>
+                {item.honoraire ?? '-'}
+              </Text>
+              <Text style={[styles.tableCell, styles.tableCellNumber, { flex: 1 }]}>
+                {item.recu ?? '-'}
+              </Text>
+              <Text style={[styles.tableCell, styles.tableCellNumber, { flex: 1, color: balance < 0 ? '#d32f2f' : balance > 0 ? '#2e7d32' : '#666' }]}>
+                {balance}
+              </Text>
+              <View style={styles.tableActions}>
+                <TouchableOpacity 
+                  style={styles.actionBtnEdit}
+                  onPress={() => { setEditTreatment(item); setDialogVisible(true); }}
+                >
+                  <Text style={styles.actionBtnText}>✏️</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.actionBtnDelete}
+                  onPress={() => askDelete(item._id)}
+                >
+                  <Text style={styles.actionBtnText}>🗑️</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+
+  // Render for Mobile: Cards
+  const renderMobileCards = () => (
+    <FlatList 
+      data={treatments}
+      keyExtractor={t => t._id}
+      contentContainerStyle={{ padding: 12 }}
+      renderItem={({ item }) => {
+        const balance = (item.recu || 0) - (item.honoraire || 0);
+        return (
+          <View style={styles.treatmentCard}>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardHeaderLeft}>
+                <View style={styles.dentBadge}>
+                  <Text style={styles.dentBadgeText}>{item.dent ?? '-'}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.cardDate}>
+                    {item.treatmentDate ? new Date(item.treatmentDate).toLocaleDateString('fr-FR') : '-'}
+                  </Text>
+                  <Text style={styles.cardDesc} numberOfLines={2}>{item.description}</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.cardAmounts}>
+              <View style={styles.amountItem}>
+                <Text style={styles.amountLabel}>Honoraires</Text>
+                <Text style={styles.amountValue}>{item.honoraire ?? 0} DT</Text>
+              </View>
+              <View style={styles.amountItem}>
+                <Text style={styles.amountLabel}>Reçu</Text>
+                <Text style={styles.amountValue}>{item.recu ?? 0} DT</Text>
+              </View>
+              <View style={[styles.amountItem, styles.amountItemBalance]}>
+                <Text style={styles.amountLabel}>Balance</Text>
+                <Text style={[styles.amountValue, { color: balance < 0 ? '#d32f2f' : balance > 0 ? '#2e7d32' : '#666' }]}>
+                  {balance} DT
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.cardActions}>
+              <TouchableOpacity 
+                style={styles.cardActionBtn}
+                onPress={() => { setEditTreatment(item); setDialogVisible(true); }}
+              >
+                <Text style={styles.cardActionIcon}>✏️</Text>
+                <Text style={styles.cardActionLabel}>Modifier</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.cardActionBtn, styles.cardActionBtnDelete]}
+                onPress={() => askDelete(item._id)}
+              >
+                <Text style={styles.cardActionIcon}>🗑️</Text>
+                <Text style={[styles.cardActionLabel, styles.cardActionLabelDelete]}>Supprimer</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        );
+      }}
+    />
+  );
 
   return (
-    <Modal visible={visible} animationType={isFullMobile ? 'slide' : 'slide'} transparent={!isFullMobile} onRequestClose={onClose}>
-      <View style={[styles.backdrop, isFullMobile && styles.backdropFullMobile]}>
-        <View style={[styles.sheet, isWeb ? styles.sheetWeb : styles.sheetMobile, isFullMobile && styles.sheetMobileFull]}>
-          <View style={styles.sheetHeader}>
-            <View style={styles.avatar}><Text style={styles.avatarText}>{patient?.lastName?.charAt(0) ?? 'P'}</Text></View>
-            <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={styles.name}>{(patient?.firstName ?? '') + ' ' + (patient?.lastName ?? '')}</Text>
-              <Text style={styles.sub}>{patient?.patientNumber ? `Fiche N° ${patient.patientNumber}` : ''}</Text>
+    <Modal visible={visible} animationType="slide" transparent={isWeb} onRequestClose={onClose}>
+      <View style={[styles.backdrop, !isWeb && styles.backdropMobile]}>
+        <View style={[styles.modal, isWeb ? styles.modalWeb : styles.modalMobile]}>
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={[styles.avatar, { backgroundColor: getAvatarColor(patient?.lastName) }]}>
+              <Text style={styles.avatarText}>
+                {getInitials(patient?.firstName, patient?.lastName)}
+              </Text>
             </View>
-            <View style={{ alignItems: 'flex-end' }}>
-              <Pressable onPress={() => setDialogVisible(true)} style={styles.iconAction}><Text style={{ color: '#2e7d32', fontWeight: '700' }}>＋</Text></Pressable>
-              <Pressable onPress={onClose} style={[styles.iconAction, { marginTop: 8 }]}><Text style={{ color: '#666' }}>✕</Text></Pressable>
+            <View style={styles.headerInfo}>
+              <Text style={styles.patientName}>
+                {patient?.firstName} {patient?.lastName}
+              </Text>
+              <Text style={styles.patientNumber}>
+                Fiche N° {patient?.patientNumber || '—'}
+              </Text>
+            </View>
+            <View style={styles.headerActions}>
+              <TouchableOpacity 
+                style={styles.headerAddBtn}
+                onPress={() => { setEditTreatment(null); setDialogVisible(true); }}
+              >
+                <Text style={styles.headerAddIcon}>＋</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.headerCloseBtn}
+                onPress={onClose}
+              >
+                <Text style={styles.headerCloseIcon}>✕</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
-          <View style={[styles.body, isFullMobile && styles.bodyFull]}>
-            {loading && <ActivityIndicator />}
+          {/* Summary Cards */}
+          <View style={styles.summaryContainer}>
+            <View style={[styles.summaryCard, styles.summaryCardHonoraires]}>
+              <Text style={styles.summaryLabel}>Honoraires</Text>
+              <Text style={styles.summaryValue}>{totals.totalHonoraires}DT</Text>
+            </View>
+            <View style={[styles.summaryCard, styles.summaryCardRecu]}>
+              <Text style={styles.summaryLabel}>Reçu</Text>
+              <Text style={styles.summaryValue}>{totals.totalRecu}DT</Text>
+            </View>
+            <View style={[
+              styles.summaryCard, 
+              totals.totalBalance < 0 ? styles.summaryCardNegative : 
+              totals.totalBalance > 0 ? styles.summaryCardPositive : 
+              styles.summaryCardNeutral
+            ]}>
+              <Text style={styles.summaryLabel}>Balance</Text>
+              <Text style={[
+                styles.summaryValue,
+                { color: totals.totalBalance < 0 ? '#d32f2f' : totals.totalBalance > 0 ? '#2e7d32' : '#666' }
+              ]}>
+                {totals.totalBalance}DT
+              </Text>
+            </View>
+          </View>
 
-                {!loading && (
-              <>
-                {/* Summary cards */}
-                <View style={[styles.summaryRow, !isWeb && styles.summaryRowMobile, !isSmall && styles.summaryRowWideCenter]}>
-                  {(() => {
-                    const totals = calculateTotals();
-                    const cards = [
-                      { label: 'Honoraires', value: `${totals.totalHonoraires}DT` },
-                      { label: 'Reçu', value: `${totals.totalRecu}DT` },
-                      { label: 'Balance', value: `${totals.totalBalance}DT`, raw: totals.totalBalance }
-                    ];
-                    return cards.map((c, idx) => (
-                      <Pressable
-                        key={c.label}
-                        onHoverIn={() => isWeb && setHoveredSummary(idx)}
-                        onHoverOut={() => isWeb && setHoveredSummary(null)}
-                        onPressIn={() => !isWeb && setHoveredSummary(idx)}
-                        onPressOut={() => !isWeb && setHoveredSummary(null)}
-                        onPress={() => { /* no op for now */ }}
-                        style={[
-                          styles.summaryCard,
-                          isSmall ? styles.summaryCardMobile : styles.summaryCardWide,
-                          hoveredSummary === idx && styles.summaryCardHover,
-                          // balance negative / positive styles
-                          c.raw != null && c.raw < 0 && styles.summaryNegativeCard,
-                          c.raw != null && c.raw > 0 && styles.summaryPositiveCard,
-                          // for non-balance cards, add a subtle neutral background
-                          c.raw == null && styles.summaryNeutralCard,
-                          // always apply the blue contour last so it overrides other borderColor
-                          styles.summaryCardAccent
-                        ]}
-                      >
-                        <Text style={[styles.summaryLabel, isSmall && styles.summaryLabelMobile]}>{c.label}</Text>
-                        <Text style={[styles.summaryValue, isSmall && styles.summaryValueMobile, c.raw != null ? balanceStyle(c.raw) : {}]}>{c.value}</Text>
-                      </Pressable>
-                    ));
-                  })()}
-                </View>
-
-                {/* Table header */}
-                <View style={[styles.tableHeader, !isWeb && styles.tableHeaderMobile]}>
-                  {(() => {
-                    const dateFlex = isSmall ? 1 : 1;
-                    const dentFlex = isSmall ? 0.9 : 1;
-                    const descFlex = isSmall ? 4 : 6;
-                    const numFlex = isSmall ? 1.2 : 1;
-                    return (
-                      <>
-                        <Text style={[styles.th, { flex: dateFlex, fontSize: 12, color: '#666', paddingRight: 8 }]}>Date</Text>
-                        <Text style={[styles.th, { flex: dentFlex }]}>Dent</Text>
-                        <Text style={[styles.th, { flex: descFlex }]}>Description</Text>
-                        <Text style={[styles.th, { flex: numFlex, textAlign: 'left' }]}>Honoraires</Text>
-                        <Text style={[styles.th, { flex: numFlex, textAlign: 'left' }]}>Reçu</Text>
-                        <Text style={[styles.th, { flex: numFlex, textAlign: 'left' }]}>Balance</Text>
-                      </>
-                    );
-                  })()}
-                </View>
-
-                    <FlatList data={treatments} keyExtractor={t => t._id} renderItem={({ item }) => (
-                      <Pressable
-                        onHoverIn={() => isWeb && setHovered(item._id)}
-                        onHoverOut={() => isWeb && setHovered(null)}
-                        style={[styles.tableRow, !isWeb && styles.tableRowMobile, isWeb && hovered === item._id && styles.cardHover]}
-                      >
-                        {(() => {
-                          const dateFlex = isSmall ? 1 : 1;
-                          const dentFlex = isSmall ? 0.9 : 1;
-                          const descFlex = isSmall ? 4 : 6;
-                          const numFlex = isSmall ? 1.2 : 1;
-                          const bal = (item.recu || 0) - (item.honoraire || 0);
-                          return (
-                            <>
-                              <Text style={[styles.td, styles.tdDate, { flex: dateFlex, paddingRight: 8 }]}>{item.treatmentDate ? new Date(item.treatmentDate).toLocaleDateString('fr-FR') : '-'}</Text>
-                              <Text style={[styles.td, { flex: dentFlex }]}>{item.dent ?? '-'}</Text>
-                              <Text style={[styles.td, { flex: descFlex }]}>{item.description}</Text>
-                              <Text style={[styles.td, { flex: numFlex, textAlign: 'left' }]}>{item.honoraire != null ? String(item.honoraire) : '-'}</Text>
-                              <Text style={[styles.td, { flex: numFlex, textAlign: 'left' }]}>{item.recu != null ? String(item.recu) : '-'}</Text>
-                              <Text style={[styles.td, { flex: numFlex, textAlign: 'left' }, balanceStyle(bal)]}>{String(bal)}</Text>
-                            </>
-                          );
-                        })()}
-                      </Pressable>
-                    )} ItemSeparatorComponent={() => <View style={{ height: 1, backgroundColor: '#f6f6f6' }} />} />
-              </>
+          {/* Content */}
+          <View style={styles.content}>
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#1976d2" />
+              </View>
+            ) : treatments.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyIcon}>💉</Text>
+                <Text style={styles.emptyText}>Aucun soin enregistré</Text>
+              </View>
+            ) : (
+              isWeb ? renderWebTable() : renderMobileCards()
             )}
           </View>
 
-          <TreatmentDialog visible={dialogVisible} patient={patient} onClose={() => setDialogVisible(false)} onSaved={onSaved} />
-          <ConfirmModal visible={confirmVisible} title="Supprimer le soin" message="Voulez-vous vraiment supprimer ce soin ?" onConfirm={() => doDelete()} onCancel={() => setConfirmVisible(false)} />
+          {/* Modals */}
+          <TreatmentDialog 
+            visible={dialogVisible} 
+            patient={patient} 
+            onClose={() => { setDialogVisible(false); setEditTreatment(null); }} 
+            onSaved={onSaved} 
+          />
+          
+          <ConfirmModal 
+            visible={confirmVisible} 
+            title="Supprimer le soin" 
+            message="Voulez-vous vraiment supprimer ce soin ?" 
+            onConfirm={doDelete} 
+            onCancel={() => { setConfirmVisible(false); setToDeleteId(null); }} 
+          />
         </View>
       </View>
     </Modal>
@@ -224,74 +322,351 @@ export default function PatientTreatmentsModal({ visible, patient, onClose }: Pr
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  title: { fontSize: 20, fontWeight: '700' },
-  addBtn: { backgroundColor: '#edf7ee', borderRadius: 6, paddingHorizontal: 12, paddingVertical: 8 },
-  addText: { color: '#2e7d32', fontWeight: '700' },
-  headerRow: { flexDirection: 'row', paddingVertical: 6, alignItems: 'center', backgroundColor: '#f7f7f7', paddingHorizontal: 8 },
-  headerCell: { fontWeight: '700' },
-  row: { flexDirection: 'row', paddingVertical: 8, alignItems: 'center', paddingHorizontal: 8 },
-  cell: { paddingVertical: 2 },
-  totals: { paddingVertical: 12, borderTopWidth: 1, borderTopColor: '#eee', marginTop: 8 },
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', padding: 12 },
-  sheet: { backgroundColor: '#fff', borderRadius: 10, maxHeight: '80%', width: '90%', maxWidth: 900, alignSelf: 'center', overflow: 'hidden' },
-  sheetWeb: { width: '80%', maxWidth: 1100 },
-  sheetHeader: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
-  avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#2e7d32', justifyContent: 'center', alignItems: 'center' },
-  avatarText: { color: '#fff', fontWeight: '700', fontSize: 20 },
-  name: { fontSize: 16, fontWeight: '800' },
-  sub: { color: '#666', fontSize: 12, marginTop: 2 },
-  iconAction: { padding: 8 },
-  body: { padding: 12 },
-  card: { backgroundColor: '#fff', borderRadius: 10, padding: 12, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6, elevation: 2, borderWidth: 1, borderColor: '#f3f3f3' },
-  cardRow: { flexDirection: 'row', alignItems: 'center' },
-  cardDate: { color: '#666', fontSize: 12 },
-  cardDesc: { fontWeight: '600', marginTop: 6 },
-  cardPrice: { fontWeight: '700' },
-  cardSmall: { color: '#666', fontSize: 12 },
-  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 },
-  smallBtn: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, backgroundColor: '#f6f6f6' },
-  balance: { fontWeight: '700' },
-  totalsRow: { marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#eee', flexDirection: 'row', justifyContent: 'space-between' },
-  totalText: { fontWeight: '700' }
-  ,
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap' },
-  summaryCard: { backgroundColor: '#fff', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#f2f2f2', marginRight: 8, marginBottom: 8, alignItems: 'center', justifyContent: 'center' },
-  // On wide screens, center the summary cards and reduce spacing between them
-  summaryRowWideCenter: { justifyContent: 'center' },
-  summaryCardWide: { width: 180, marginHorizontal: 6, padding: 14 },
-  summaryLabel: { color: '#666', fontSize: 12, textAlign: 'center' },
-  summaryValue: { fontSize: 18, fontWeight: '800', marginTop: 6, textAlign: 'center' },
-  tableHeader: { flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#eee', marginTop: 8 },
-  th: { fontWeight: '700', color: '#444', paddingHorizontal: 8 },
-  td: { paddingVertical: 10, color: '#222', paddingHorizontal: 8 },
-  tableRow: { flexDirection: 'row', paddingHorizontal: 8, alignItems: 'center' },
-  tdDate: { fontSize: 12, color: '#666' },
-  sheetMobile: { width: '100%', maxWidth: '100%', marginHorizontal: 0, borderRadius: 0 },
-  // On mobile we want a compact 2x2 grid with uniform cards
-  summaryRowMobile: { flexDirection: 'row', flexWrap: 'nowrap', justifyContent: 'center', alignItems: 'center' },
-  tableHeaderMobile: { paddingVertical: 6 },
-  tableRowMobile: { paddingVertical: 6 },
-  // More compact mobile cards to allow 3 cards on one line on smaller screens
-  summaryCardMobile: { width: '26%', marginBottom: 4, alignSelf: 'center', minHeight: 30, padding: 4, justifyContent: 'center', marginHorizontal: 4, minWidth: 0 },
-  summaryLabelMobile: { fontSize: 9 },
-  summaryValueMobile: { fontSize: 12, marginTop: 2 },
-  cardHover: { transform: [{ translateY: -4 }], shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, elevation: 6, backgroundColor: '#fff' },
-  summaryAccent: { borderColor: '#e6f4ea', backgroundColor: '#fbfff9' }
-  ,
-  summaryCardHover: { transform: [{ translateY: -6 }, { scale: 1.02 }], shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, elevation: 10, backgroundColor: '#fff' },
-  summaryCardPressed: { transform: [{ translateY: -2 }, { scale: 0.995 }], shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 6, elevation: 4, backgroundColor: '#fff' },
-  summaryNegativeCard: { borderColor: '#ffdfe0', backgroundColor: '#fff6f6' }
-  ,
-  summaryPositiveCard: { borderColor: '#dff6e8', backgroundColor: '#f3fff7' }
-  ,
-  summaryNeutralCard: { borderColor: '#f2f2f2', backgroundColor: '#fbfbfb' }
-  ,
-  summaryCardAccent: { borderColor: '#0b4f6c', borderWidth: 1.2 }
-  ,
-  // Full screen mobile styles
-  backdropFullMobile: { flex: 1, backgroundColor: '#fff', justifyContent: 'flex-start', padding: 0 },
-  sheetMobileFull: { width: '100%', height: '100%', maxWidth: '100%', borderRadius: 0 },
-  bodyFull: { padding: 12, flex: 1 }
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  backdropMobile: {
+    backgroundColor: '#fff',
+    padding: 0,
+  },
+  modal: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    width: '100%',
+    maxHeight: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  modalWeb: {
+    maxWidth: 1100,
+  },
+  modalMobile: {
+    width: '100%',
+    height: '100%',
+    maxHeight: '100%',
+    borderRadius: 0,
+  },
+  // === Header ===
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    backgroundColor: '#fafafa',
+  },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  headerInfo: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  patientName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#212121',
+  },
+  patientNumber: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  headerAddBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#4caf50',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#4caf50',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  headerAddIcon: {
+    fontSize: 24,
+    color: '#fff',
+    fontWeight: '700',
+  },
+  headerCloseBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerCloseIcon: {
+    fontSize: 20,
+    color: '#666',
+  },
+  // === Summary Cards ===
+  summaryContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 16,
+    gap: 12,
+  },
+  summaryCard: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  summaryCardHonoraires: {
+    backgroundColor: '#e3f2fd',
+    borderLeftWidth: 4,
+    borderLeftColor: '#1976d2',
+  },
+  summaryCardRecu: {
+    backgroundColor: '#f3e5f5',
+    borderLeftWidth: 4,
+    borderLeftColor: '#7b1fa2',
+  },
+  summaryCardNegative: {
+    backgroundColor: '#ffebee',
+    borderLeftWidth: 4,
+    borderLeftColor: '#d32f2f',
+  },
+  summaryCardPositive: {
+    backgroundColor: '#e8f5e9',
+    borderLeftWidth: 4,
+    borderLeftColor: '#2e7d32',
+  },
+  summaryCardNeutral: {
+    backgroundColor: '#f5f5f5',
+    borderLeftWidth: 4,
+    borderLeftColor: '#9e9e9e',
+  },
+  summaryLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#666',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  summaryValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#212121',
+    marginTop: 8,
+  },
+  // === Content ===
+  content: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyIcon: {
+    fontSize: 64,
+    opacity: 0.3,
+    marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#999',
+  },
+  // === Web Table ===
+  tableContainer: {
+    margin: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    overflow: 'hidden',
+    backgroundColor: '#fff',
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#f8f9fa',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  tableHeaderText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#666',
+    textTransform: 'uppercase',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f5f5f5',
+    alignItems: 'center',
+  },
+  tableCell: {
+    fontSize: 14,
+    color: '#212121',
+    paddingRight: 8,
+  },
+  tableCellNumber: {
+    textAlign: 'right',
+    fontWeight: '600',
+  },
+  tableActions: {
+    flexDirection: 'row',
+    gap: 8,
+    width: 100,
+    justifyContent: 'flex-end',
+  },
+  actionBtnEdit: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#e3f2fd',
+    borderRadius: 6,
+  },
+  actionBtnDelete: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#ffebee',
+    borderRadius: 6,
+  },
+  actionBtnText: {
+    fontSize: 16,
+  },
+  // === Mobile Cards ===
+  treatmentCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  cardHeaderLeft: {
+    flexDirection: 'row',
+    flex: 1,
+    gap: 12,
+  },
+  dentBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#1976d2',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dentBadgeText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  cardDate: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+  },
+  cardDesc: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#212121',
+    flex: 1,
+  },
+  cardAmounts: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  amountItem: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+    padding: 10,
+    borderRadius: 8,
+  },
+  amountItemBalance: {
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  amountLabel: {
+    fontSize: 10,
+    color: '#666',
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  amountValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#212121',
+  },
+  cardActions: {
+    flexDirection: 'row',
+    gap: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    paddingTop: 12,
+  },
+  cardActionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    backgroundColor: '#e3f2fd',
+    borderRadius: 8,
+    gap: 6,
+  },
+  cardActionBtnDelete: {
+    backgroundColor: '#ffebee',
+  },
+  cardActionIcon: {
+    fontSize: 16,
+  },
+  cardActionLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#666',
+  },
+  cardActionLabelDelete: {
+    color: '#d32f2f',
+  },
 });
