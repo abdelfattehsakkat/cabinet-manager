@@ -27,10 +27,8 @@ export default function TabBar({ active, onChange, userPermissions, onLogout }: 
   const hamburgerMenus = getHamburgerMenus(userPermissions);
   const showMoreButton = shouldShowMoreButton() && hamburgerMenus.length > 0;
 
-  // Si on a les boutons "Plus" et "Profil", on limite à 3 tabs principaux
-  // Sinon si juste "Plus", on limite à 4
-  // Sinon on affiche tous les tabs (max 5) mais on réserve 1 place pour Profil
-  const maxTabs = showMoreButton ? 3 : 4;
+  // Affiche 4 tabs principaux + Plus + Profil (6 items max sur mobile)
+  const maxTabs = 4;
   const displayedTabs = tabBarMenus.slice(0, maxTabs);
 
   return (
