@@ -4,6 +4,7 @@ import { getAppointments } from '../api/appointments';
 import CalendarWeb from './CalendarWeb';
 import CalendarMobile from './CalendarMobile';
 import AppointmentModal from '../ui/AppointmentModal';
+import AppointmentDetailModal from '../ui/AppointmentDetailModal';
 
 export default function CalendarScreen() {
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -12,6 +13,8 @@ export default function CalendarScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalInitial, setModalInitial] = useState<string | null>(null);
   const [modalDuration, setModalDuration] = useState<number>(30);
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
 
   useEffect(() => { loadAppointments(); }, []);
 
@@ -38,13 +41,23 @@ export default function CalendarScreen() {
     setModalInitial(null);
   }
 
+  function openDetail(appointment: any) {
+    setSelectedAppointment(appointment);
+    setDetailModalVisible(true);
+  }
+
+  function closeDetail() {
+    setDetailModalVisible(false);
+    setSelectedAppointment(null);
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Calendrier</Text>
       {isSmall ? (
-        <CalendarMobile appointments={appointments} onSelect={(a) => { /* TODO: open detail */ }} />
+        <CalendarMobile appointments={appointments} onSelect={(a) => openDetail(a)} />
       ) : (
-        <CalendarWeb appointments={appointments} onSelect={(a) => { /* TODO: open detail */ }} onCreate={(initial) => openCreate(initial)} />
+        <CalendarWeb appointments={appointments} onSelect={(a) => openDetail(a)} onCreate={(initial) => openCreate(initial)} />
       )}
 
       {/* floating create button for small screens (mobile) */}
@@ -55,6 +68,14 @@ export default function CalendarScreen() {
       )}
 
       <AppointmentModal visible={modalVisible} initial={modalInitial} initialDuration={modalDuration} onClose={closeCreate} onCreated={() => { loadAppointments(); }} />
+      
+      <AppointmentDetailModal 
+        visible={detailModalVisible} 
+        appointment={selectedAppointment} 
+        onClose={closeDetail} 
+        onUpdated={() => { loadAppointments(); }}
+        onDeleted={() => { loadAppointments(); }}
+      />
     </View>
   );
 }

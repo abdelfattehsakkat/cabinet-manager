@@ -13,10 +13,12 @@ type Props = {
 };
 
 export default function AppointmentModal({ visible, initial, initialDuration = 30, onClose, onCreated }: Props) {
+  const [mode, setMode] = useState<'existing' | 'new'>('existing'); // Toggle between modes
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [showDateOfBirth, setShowDateOfBirth] = useState(false);
   const [dateStr, setDateStr] = useState(initial || '');
   const [duration, setDuration] = useState(String(initialDuration));
   const [type, setType] = useState('Consultation');
@@ -34,6 +36,7 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
   // Reset internal state when modal closes to keep UX predictable
   useEffect(() => {
     if (!visible) {
+      setMode('existing');
       setQuery('');
       setSuggestions([]);
       setSelectedPatient(null);
@@ -41,6 +44,7 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
       setLastName('');
       setDateOfBirth('');
       setPhoneNumber('');
+      setShowDateOfBirth(false);
       setType('Consultation');
       setLoading(false);
     }
@@ -55,8 +59,8 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
   }, [selectedPatient]);
 
   useEffect(() => {
-    // debounce search
-    if (!query || query.trim().length < 2) {
+    // debounce search - only in existing patient mode
+    if (mode !== 'existing' || !query || query.trim().length < 2) {
       setSuggestions([]);
       return;
     }
@@ -70,10 +74,23 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
       }
     }, 300);
     return () => { if (debounceRef.current) window.clearTimeout(debounceRef.current as any); };
-  }, [query]);
+  }, [query, mode]);
 
   async function handleCreate() {
-    if (!firstName || !lastName || !dateStr) return;
+    // Validation
+    if (mode === 'existing' && !selectedPatient) {
+      alert('Veuillez sélectionner un patient ou basculer en mode "Nouveau patient"');
+      return;
+    }
+    if (mode === 'new' && (!firstName.trim() || !lastName.trim())) {
+      alert('Prénom et nom sont obligatoires');
+      return;
+    }
+    if (!dateStr) {
+      alert('Date et heure sont obligatoires');
+      return;
+    }
+
     setLoading(true);
     try {
       // Get logged-in user (doctor) ID
@@ -92,15 +109,15 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
       }
 
       let patient = selectedPatient;
-      if (!patient) {
+      if (mode === 'new' || !patient) {
         // create patient first - dateOfBirth is required by backend
         // Use provided date or default to a placeholder date
         const dob = dateOfBirth ? new Date(dateOfBirth).toISOString() : new Date('2000-01-01').toISOString();
         const created = await createPatient({ 
-          firstName, 
-          lastName, 
+          firstName: firstName.trim(), 
+          lastName: lastName.trim(), 
           dateOfBirth: dob,
-          phoneNumber: phoneNumber || undefined
+          phoneNumber: phoneNumber.trim() || undefined
         });
         patient = created;
       }
@@ -120,114 +137,182 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
       onClose();
     } catch (err) {
       console.error('create appointment error', err);
-      // could show an error toast
+      alert('Erreur lors de la création du rendez-vous');
     } finally {
       setLoading(false);
     }
   }
 
-  // For web, show datetime-local input for convenience
+  // Format date of birth with auto-hyphens (YYYY-MM-DD)
+  const handleDateOfBirthChange = (text: string) => {
+    // Remove non-digits
+    const cleaned = text.replace(/\D/g, '');
+    
+    let formatted = '';
+    if (cleaned.length > 0) {
+      formatted = cleaned.substring(0, 4); // YYYY
+      if (cleaned.length >= 5) {
+        formatted += '-' + cleaned.substring(4, 6); // MM
+      }
+      if (cleaned.length >= 7) {
+        formatted += '-' + cleaned.substring(6, 8); // DD
+      }
+    }
+    setDateOfBirth(formatted);
+  };
+
+  // For web, use native datetime-local input
   const DateInput = Platform.OS === 'web' ? (
-    <TextInput style={styles.input} value={dateStr} onChangeText={setDateStr} placeholder="YYYY-MM-DDTHH:MM" />
+    <input 
+      type="datetime-local" 
+      value={dateStr} 
+      onChange={(e) => setDateStr(e.target.value)} 
+      style={{ 
+        borderWidth: 1, 
+        borderColor: '#ddd', 
+        padding: 12, 
+        borderRadius: 8, 
+        fontSize: 15,
+        backgroundColor: '#fff',
+        width: '100%',
+        fontFamily: 'inherit',
+        boxSizing: 'border-box'
+      }}
+    />
   ) : (
-    <TextInput style={styles.input} value={dateStr} onChangeText={setDateStr} placeholder="YYYY-MM-DDTHH:MM" />
+    <TextInput 
+      style={styles.input} 
+      value={dateStr} 
+      onChangeText={setDateStr} 
+      placeholder="JJ/MM/AAAA HH:MM"
+      autoComplete="off"
+    />
   );
 
   return (
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
-          <View style={styles.header}><Text style={styles.title}>Nouveau rendez-vous</Text><Pressable onPress={onClose}><Text style={styles.close}>✕</Text></Pressable></View>
-          <View style={styles.body}>
-            <View style={{ marginBottom: 16, zIndex: 100 }}>
-              <Text style={styles.label}>Patient (recherche)</Text>
-              <View style={{ position: 'relative' }}>
-                <TextInput 
-                  style={styles.input} 
-                  value={query} 
-                  onChangeText={(v) => { setQuery(v); setSelectedPatient(null); }} 
-                  placeholder="Tapez prénom ou nom" 
-                  autoComplete="off"
-                  autoCorrect={false}
-                  autoCapitalize="words"
-                />
+          <View style={styles.header}>
+            <Text style={styles.title}>Nouveau rendez-vous</Text>
+            <Pressable onPress={onClose}><Text style={styles.close}>✕</Text></Pressable>
+          </View>
 
-                {suggestions.length > 0 && (
-                  // absolutely positioned dropdown so it doesn't resize the modal
-                  <View style={styles.suggestionBox}>
-                    <Pressable onPress={async () => {
-                      const parts = query.trim().split(' ');
-                      const fn = parts[0] || '';
-                      const ln = parts.slice(1).join(' ') || '';
-                      try {
-                        setLoading(true);
-                        const created = await createPatient({ firstName: fn, lastName: ln });
-                        setSelectedPatient(created);
-                        setSuggestions([]);
-                        setQuery('');
-                      } catch (err) {
-                        console.error('create patient quick action error', err);
-                      } finally { setLoading(false); }
-                    }} style={styles.suggestionCreate}>
-                      <Text style={{ fontWeight: '700', color: '#1976d2' }}>+ Créer nouveau patient « {query} »</Text>
+          {/* Mode Toggle */}
+          <View style={styles.toggleContainer}>
+            <Pressable 
+              onPress={() => { setMode('existing'); setSuggestions([]); setSelectedPatient(null); }}
+              style={[styles.toggleButton, mode === 'existing' && styles.toggleButtonActive]}
+            >
+              <Text style={[styles.toggleText, mode === 'existing' && styles.toggleTextActive]}>Patient existant</Text>
+            </Pressable>
+            <Pressable 
+              onPress={() => { setMode('new'); setSuggestions([]); setQuery(''); setSelectedPatient(null); }}
+              style={[styles.toggleButton, mode === 'new' && styles.toggleButtonActive]}
+            >
+              <Text style={[styles.toggleText, mode === 'new' && styles.toggleTextActive]}>Nouveau patient</Text>
+            </Pressable>
+          </View>
+
+          {/* Scrollable body */}
+          <View style={styles.scrollContainer}>
+            <View style={styles.body}>
+            {/* EXISTING PATIENT MODE */}
+            {mode === 'existing' && (
+              <View style={{ marginBottom: 16, zIndex: 100 }}>
+                <Text style={styles.label}>Rechercher un patient</Text>
+                <View style={{ position: 'relative' }}>
+                  <TextInput 
+                    style={styles.input} 
+                    value={query} 
+                    onChangeText={(v) => { setQuery(v); setSelectedPatient(null); }} 
+                    placeholder="Nom, prénom ou téléphone" 
+                    autoComplete="off"
+                    autoCorrect={false}
+                    autoCapitalize="words"
+                  />
+
+                  {suggestions.length > 0 && (
+                    <View style={styles.suggestionBox}>
+                      <FlatList 
+                        data={suggestions} 
+                        keyExtractor={(it) => it._id} 
+                        style={{ maxHeight: 240, backgroundColor: '#fff' }} 
+                        renderItem={({ item }) => (
+                          <Pressable 
+                            onPress={() => { 
+                              setSelectedPatient(item); 
+                              setSuggestions([]); 
+                              setQuery(`${item.firstName} ${item.lastName}`);
+                            }} 
+                            style={styles.suggestionItem}
+                          >
+                            <Text style={{ fontWeight: '700', fontSize: 15 }}>{item.firstName} {item.lastName}</Text>
+                            <Text style={{ color: '#666', fontSize: 13, marginTop: 2 }}>
+                              {item.phoneNumber || item.email || `N° ${item.patientNumber || ''}`}
+                            </Text>
+                          </Pressable>
+                        )} 
+                      />
+                    </View>
+                  )}
+                </View>
+
+                {selectedPatient && (
+                  <View style={styles.selectedPatientBadge}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontWeight: '700', color: '#2e7d32', fontSize: 15 }}>✓ {selectedPatient.firstName} {selectedPatient.lastName}</Text>
+                      {selectedPatient.phoneNumber && <Text style={{ color: '#666', fontSize: 13, marginTop: 2 }}>{selectedPatient.phoneNumber}</Text>}
+                    </View>
+                    <Pressable onPress={() => setSelectedPatient(null)}>
+                      <Text style={{ color: '#666', fontSize: 18 }}>✕</Text>
                     </Pressable>
+                  </View>
+                )}
 
-                    <FlatList 
-                      data={suggestions} 
-                      keyExtractor={(it) => it._id} 
-                      style={{ maxHeight: 240, backgroundColor: '#fff' }} 
-                      renderItem={({ item }) => (
-                        <Pressable 
-                          onPress={() => { setSelectedPatient(item); setSuggestions([]); setQuery(''); }} 
-                          style={styles.suggestionItem}
-                        >
-                          <Text style={{ fontWeight: '700', fontSize: 15 }}>{item.firstName} {item.lastName}</Text>
-                          <Text style={{ color: '#666', fontSize: 13, marginTop: 2 }}>{item.phoneNumber || item.email || ''}</Text>
-                        </Pressable>
-                      )} 
-                    />
+                {!selectedPatient && query.length > 0 && suggestions.length === 0 && (
+                  <View style={{ marginTop: 8, padding: 10, backgroundColor: '#fff3e0', borderRadius: 6 }}>
+                    <Text style={{ color: '#e65100', fontSize: 13 }}>Aucun patient trouvé.</Text>
+                    <Pressable onPress={() => setMode('new')} style={{ marginTop: 6 }}>
+                      <Text style={{ color: '#1976d2', fontWeight: '700', fontSize: 13 }}>→ Créer un nouveau patient</Text>
+                    </Pressable>
                   </View>
                 )}
               </View>
+            )}
 
-              {selectedPatient && (
-                <View style={{ marginTop: 8, padding: 10, backgroundColor: '#e8f5e9', borderRadius: 6 }}>
-                  <Text style={{ fontWeight: '700', color: '#2e7d32' }}>✓ {selectedPatient.firstName} {selectedPatient.lastName}</Text>
-                  {selectedPatient.phoneNumber && <Text style={{ color: '#666', fontSize: 13 }}>{selectedPatient.phoneNumber}</Text>}
-                </View>
-              )}
-            </View>
-
-            {!selectedPatient && (
+            {/* NEW PATIENT MODE */}
+            {mode === 'new' && (
               <View style={{ marginBottom: 16, zIndex: 10 }}>
-                <Text style={styles.label}>Prénom *</Text>
-                <TextInput 
-                  style={styles.input} 
-                  value={firstName} 
-                  onChangeText={setFirstName}
-                  autoComplete="off"
-                  autoCorrect={false}
-                  autoCapitalize="words"
-                />
-                <Text style={styles.label}>Nom *</Text>
-                <TextInput 
-                  style={styles.input} 
-                  value={lastName} 
-                  onChangeText={setLastName}
-                  autoComplete="off"
-                  autoCorrect={false}
-                  autoCapitalize="words"
-                />
-                <Text style={styles.label}>Date de naissance (optionnel)</Text>
-                <TextInput 
-                  style={styles.input} 
-                  value={dateOfBirth} 
-                  onChangeText={setDateOfBirth}
-                  placeholder="AAAA-MM-JJ"
-                  autoComplete="off"
-                  autoCorrect={false}
-                />
-                <Text style={styles.label}>Téléphone (optionnel)</Text>
+                <Text style={styles.sectionTitle}>Informations patient</Text>
+                <View style={styles.row}>
+                  <View style={{ flex: 1, marginRight: Platform.OS === 'web' ? 8 : 0 }}>
+                    <Text style={styles.label}>Prénom *</Text>
+                    <TextInput 
+                      style={styles.input} 
+                      value={firstName} 
+                      onChangeText={setFirstName}
+                      autoComplete="off"
+                      autoCorrect={false}
+                      autoCapitalize="words"
+                      placeholder="Prénom"
+                    />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: Platform.OS === 'web' ? 8 : 0, marginTop: Platform.OS === 'web' ? 0 : 0 }}>
+                    <Text style={styles.label}>Nom *</Text>
+                    <TextInput 
+                      style={styles.input} 
+                      value={lastName} 
+                      onChangeText={setLastName}
+                      autoComplete="off"
+                      autoCorrect={false}
+                      autoCapitalize="words"
+                      placeholder="Nom"
+                    />
+                  </View>
+                </View>
+
+                <Text style={styles.label}>Téléphone</Text>
                 <TextInput 
                   style={styles.input} 
                   value={phoneNumber} 
@@ -237,17 +322,47 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
                   autoCorrect={false}
                   keyboardType="phone-pad"
                 />
+
+                {!showDateOfBirth && (
+                  <Pressable onPress={() => setShowDateOfBirth(true)} style={{ marginTop: 8 }}>
+                    <Text style={{ color: '#1976d2', fontSize: 13 }}>+ Ajouter date de naissance</Text>
+                  </Pressable>
+                )}
+
+                {showDateOfBirth && (
+                  <>
+                    <Text style={styles.label}>Date de naissance</Text>
+                    <TextInput 
+                      style={styles.input} 
+                      value={dateOfBirth} 
+                      onChangeText={handleDateOfBirthChange}
+                      placeholder="AAAA-MM-JJ"
+                      autoComplete="off"
+                      autoCorrect={false}
+                      keyboardType="numeric"
+                      maxLength={10}
+                    />
+                  </>
+                )}
+
+                <Pressable onPress={() => setMode('existing')} style={{ marginTop: 12 }}>
+                  <Text style={{ color: '#666', fontSize: 13 }}>← Rechercher un patient existant</Text>
+                </Pressable>
               </View>
             )}
 
+            {/* APPOINTMENT DETAILS (common to both modes) */}
             <View style={{ marginBottom: 16, zIndex: 5 }}>
-              <Text style={styles.label}>Date & heure</Text>
-              {DateInput}
+              <Text style={styles.sectionTitle}>Détails du rendez-vous</Text>
+              <Text style={styles.label}>Date & heure *</Text>
+              <View style={{ width: '100%' }}>
+                {DateInput}
+              </View>
             </View>
 
-            <View style={[styles.row, { zIndex: 1 }]}>
-              <View style={{ flex: 1, marginRight: 8 }}>
-                <Text style={styles.label}>Durée (minutes)</Text>
+            <View style={[styles.row, { zIndex: 1, marginBottom: 0 }]}>
+              <View style={{ flex: 1, marginRight: Platform.OS === 'web' ? 8 : 0 }}>
+                <Text style={styles.label}>Durée (min)</Text>
                 <TextInput 
                   style={styles.input} 
                   value={duration} 
@@ -256,21 +371,28 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
                   autoComplete="off"
                 />
               </View>
-              <View style={{ flex: 1, marginLeft: 8 }}>
+              <View style={{ flex: 1, marginLeft: Platform.OS === 'web' ? 8 : 0, marginTop: Platform.OS === 'web' ? 0 : 0 }}>
                 <Text style={styles.label}>Type</Text>
                 <TextInput 
                   style={styles.input} 
                   value={type} 
                   onChangeText={setType}
                   autoComplete="off"
+                  placeholder="Consultation"
                 />
               </View>
             </View>
 
-            <View style={{ height: 12 }} />
-            <Pressable style={styles.save} onPress={handleCreate} disabled={loading}>
-              <Text style={{ color: '#fff', fontWeight: '700' }}>{loading ? 'Enregistrement...' : 'Créer'}</Text>
+            <Pressable 
+              style={[styles.save, loading && { opacity: 0.6 }]} 
+              onPress={handleCreate} 
+              disabled={loading}
+            >
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
+                {loading ? 'Création en cours...' : 'Créer le rendez-vous'}
+              </Text>
             </Pressable>
+            </View>
           </View>
         </View>
       </View>
@@ -279,12 +401,77 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 12 },
-  sheet: { backgroundColor: '#fff', borderRadius: 10, padding: 20, maxWidth: 760, width: '90%', alignSelf: 'center', maxHeight: '90%' },
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 12 },
+  sheet: { 
+    backgroundColor: '#fff', 
+    borderRadius: 10, 
+    padding: Platform.OS === 'web' ? 20 : 16,
+    maxWidth: 760, 
+    width: Platform.OS === 'web' ? '90%' : '100%',
+    alignSelf: 'center', 
+    maxHeight: '90%',
+    display: 'flex',
+    flexDirection: 'column',
+    ...Platform.select({
+      web: {},
+      default: {
+        width: '95%',
+        maxHeight: '95%'
+      }
+    })
+  },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   title: { fontSize: 20, fontWeight: '800' },
   close: { fontSize: 22, padding: 6, color: '#666' },
+  toggleContainer: { 
+    flexDirection: 'row', 
+    backgroundColor: '#f5f5f5', 
+    borderRadius: 8, 
+    padding: 4,
+    marginBottom: 20,
+    flexShrink: 0
+  },
+  scrollContainer: {
+    flex: 1,
+    overflowY: 'auto',
+    ...Platform.select({
+      web: {
+        overflowY: 'auto'
+      },
+      default: {}
+    })
+  },
+  toggleButton: { 
+    flex: 1, 
+    paddingVertical: Platform.OS === 'web' ? 10 : 12,
+    paddingHorizontal: Platform.OS === 'web' ? 16 : 8,
+    borderRadius: 6, 
+    alignItems: 'center' 
+  },
+  toggleButtonActive: { 
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2
+  },
+  toggleText: { 
+    fontSize: 14, 
+    fontWeight: '600', 
+    color: '#666' 
+  },
+  toggleTextActive: { 
+    color: '#1976d2' 
+  },
   body: { position: 'relative' },
+  sectionTitle: { 
+    fontSize: 16, 
+    fontWeight: '700', 
+    color: '#333', 
+    marginBottom: 12,
+    marginTop: 4
+  },
   label: { color: '#333', marginTop: 8, fontSize: 14, fontWeight: '600', marginBottom: 4 },
   input: { 
     borderWidth: 1, 
@@ -332,7 +519,24 @@ const styles = StyleSheet.create({
     borderBottomColor: '#f5f5f5',
     backgroundColor: '#ffffff'
   },
-  row: { flexDirection: 'row', marginBottom: 16 },
+  selectedPatientBadge: { 
+    marginTop: 10, 
+    padding: 12, 
+    backgroundColor: '#e8f5e9', 
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  row: { 
+    flexDirection: Platform.OS === 'web' ? 'row' : 'column',
+    marginBottom: 16,
+    ...Platform.select({
+      web: {},
+      default: {
+        gap: 0
+      }
+    })
+  },
   save: { 
     marginTop: 20, 
     backgroundColor: '#1976d2', 

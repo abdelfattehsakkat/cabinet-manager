@@ -24,6 +24,9 @@ type Props = {
 };
 
 export default function CalendarWeb({ appointments, onSelect, onCreate }: Props) {
+  const [clickCount, setClickCount] = useState(0);
+  const [clickTimer, setClickTimer] = useState<number | null>(null);
+  const [lastClickedEvent, setLastClickedEvent] = useState<any>(null);
   // compute today's appointments for the left summary
   const todayKey = new Date().toDateString();
   const todays = appointments.filter(a => {
@@ -57,6 +60,33 @@ export default function CalendarWeb({ appointments, onSelect, onCreate }: Props)
     // removed grid CSS injection because it breaks FullCalendar layout
     return () => {};
   }, []);
+
+  // Handle double-click on event
+  const handleEventClick = (info: any) => {
+    const appointment = info.event.extendedProps?.appointment;
+    if (!appointment) return;
+
+    if (clickTimer) {
+      // Double click detected
+      window.clearTimeout(clickTimer);
+      setClickTimer(null);
+      setClickCount(0);
+      setLastClickedEvent(null);
+      // Trigger onSelect for double-click (detail view)
+      onSelect && onSelect(appointment);
+    } else {
+      // First click
+      setClickCount(1);
+      setLastClickedEvent(appointment);
+      const timer = window.setTimeout(() => {
+        // Single click timeout - do nothing or show quick preview
+        setClickCount(0);
+        setClickTimer(null);
+        setLastClickedEvent(null);
+      }, 300);
+      setClickTimer(timer as any);
+    }
+  };
 
   return (
     <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
@@ -112,7 +142,7 @@ export default function CalendarWeb({ appointments, onSelect, onCreate }: Props)
               return { id: a._id, title: a.patientName || `${a.patientFirstName} ${a.patientLastName}`, start: local, end, extendedProps: { appointment: a } };
             })}
             eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
-            eventClick={(info: any) => onSelect && onSelect(info.event.extendedProps?.appointment)}
+            eventClick={handleEventClick}
             height={computedHeight || '100%'}
           />
 
