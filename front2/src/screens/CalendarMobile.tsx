@@ -70,7 +70,6 @@ export default function CalendarMobile({ appointments, onSelect }: Props) {
   // Status colors
   const statusColors: Record<string, string> = {
     scheduled: '#1976d2',
-    confirmed: '#2e7d32',
     completed: '#616161',
     cancelled: '#d32f2f',
     noShow: '#f57c00'

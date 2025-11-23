@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, useWindowDimensions, Platform, Pressable } from 'react-native';
 import { getAppointments } from '../api/appointments';
+import api from '../api/client';
 import CalendarWeb from './CalendarWeb';
 import CalendarMobile from './CalendarMobile';
 import AppointmentModal from '../ui/AppointmentModal';
@@ -51,13 +52,23 @@ export default function CalendarScreen() {
     setSelectedAppointment(null);
   }
 
+  async function updateAppointmentStatus(id: string, status: string) {
+    try {
+      await api.put(`/appointments/${id}`, { status });
+      await loadAppointments();
+    } catch (err) {
+      console.error('Failed to update appointment status', err);
+      alert('Erreur lors de la mise à jour du statut');
+    }
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Calendrier</Text>
       {isSmall ? (
         <CalendarMobile appointments={appointments} onSelect={(a) => openDetail(a)} />
       ) : (
-        <CalendarWeb appointments={appointments} onSelect={(a) => openDetail(a)} onCreate={(initial) => openCreate(initial)} />
+        <CalendarWeb appointments={appointments} onSelect={(a) => openDetail(a)} onCreate={(initial) => openCreate(initial)} onUpdateStatus={updateAppointmentStatus} />
       )}
 
       {/* floating create button for small screens (mobile) */}

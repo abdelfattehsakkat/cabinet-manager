@@ -108,7 +108,6 @@ export default function AppointmentDetailModal({ visible, appointment, onClose, 
 
   const statusLabels: Record<string, string> = {
     scheduled: 'Planifié',
-    confirmed: 'Confirmé',
     completed: 'Terminé',
     cancelled: 'Annulé',
     noShow: 'Absent'
@@ -116,7 +115,6 @@ export default function AppointmentDetailModal({ visible, appointment, onClose, 
 
   const statusColors: Record<string, string> = {
     scheduled: '#1976d2',
-    confirmed: '#2e7d32',
     completed: '#616161',
     cancelled: '#d32f2f',
     noShow: '#f57c00'
@@ -286,24 +284,61 @@ export default function AppointmentDetailModal({ visible, appointment, onClose, 
             <View style={styles.actions}>
               {!editMode ? (
                 <>
-                  <Pressable 
-                    style={[styles.button, styles.buttonPrimary]} 
-                    onPress={() => setEditMode(true)}
-                  >
-                    <Text style={styles.buttonText}>Modifier</Text>
-                  </Pressable>
-                  <Pressable 
-                    style={[styles.button, styles.buttonDanger]} 
-                    onPress={handleDelete}
-                    disabled={loading}
-                  >
-                    <Text style={styles.buttonText}>Supprimer</Text>
-                  </Pressable>
+                  {/* Quick status actions (if not completed or cancelled) */}
+                  {appointment.status !== 'completed' && appointment.status !== 'cancelled' && (
+                    <View style={styles.quickActions}>
+                      <Pressable 
+                        style={[styles.button, styles.buttonSuccess, { flex: 1, marginRight: 8 }]} 
+                        onPress={async () => {
+                          try {
+                            await api.put(`/appointments/${appointment._id}`, { status: 'completed' });
+                            onUpdated && onUpdated();
+                            onClose();
+                          } catch (err) {
+                            console.error('Failed to mark as completed', err);
+                            alert('Erreur lors de la mise à jour');
+                          }
+                        }}
+                      >
+                        <Text style={styles.buttonText}>✓ Terminé</Text>
+                      </Pressable>
+                      <Pressable 
+                        style={[styles.button, styles.buttonWarning, { flex: 1 }]} 
+                        onPress={async () => {
+                          try {
+                            await api.put(`/appointments/${appointment._id}`, { status: 'noShow' });
+                            onUpdated && onUpdated();
+                            onClose();
+                          } catch (err) {
+                            console.error('Failed to mark as no-show', err);
+                            alert('Erreur lors de la mise à jour');
+                          }
+                        }}
+                      >
+                        <Text style={styles.buttonText}>✗ Absent</Text>
+                      </Pressable>
+                    </View>
+                  )}
+                  <View style={{ flexDirection: Platform.OS === 'web' ? 'row' : 'column', gap: 8, marginTop: 8 }}>
+                    <Pressable 
+                      style={[styles.button, styles.buttonPrimary, Platform.OS !== 'web' && { marginBottom: 8 }]} 
+                      onPress={() => setEditMode(true)}
+                    >
+                      <Text style={styles.buttonText}>Modifier</Text>
+                    </Pressable>
+                    <Pressable 
+                      style={[styles.button, styles.buttonDanger]} 
+                      onPress={handleDelete}
+                      disabled={loading}
+                    >
+                      <Text style={styles.buttonText}>Supprimer</Text>
+                    </Pressable>
+                  </View>
                 </>
               ) : (
-                <>
+                <View style={{ flexDirection: Platform.OS === 'web' ? 'row' : 'column', gap: 8 }}>
                   <Pressable 
-                    style={[styles.button, styles.buttonSuccess]} 
+                    style={[styles.button, styles.buttonSuccess, Platform.OS !== 'web' && { marginBottom: 8 }]} 
                     onPress={handleUpdate}
                     disabled={loading}
                   >
@@ -317,7 +352,7 @@ export default function AppointmentDetailModal({ visible, appointment, onClose, 
                   >
                     <Text style={styles.buttonText}>Annuler</Text>
                   </Pressable>
-                </>
+                </View>
               )}
             </View>
           </ScrollView>
@@ -388,6 +423,11 @@ const styles = StyleSheet.create({
     flexDirection: Platform.OS === 'web' ? 'row' : 'column',
     marginBottom: 12
   },
+  quickActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8
+  },
   statusPicker: { 
     flexDirection: 'row', 
     flexWrap: 'wrap', 
@@ -427,6 +467,7 @@ const styles = StyleSheet.create({
   },
   buttonPrimary: { backgroundColor: '#1976d2' },
   buttonSuccess: { backgroundColor: '#2e7d32' },
+  buttonWarning: { backgroundColor: '#f57c00' },
   buttonDanger: { backgroundColor: '#d32f2f' },
   buttonSecondary: { backgroundColor: '#757575' },
   buttonText: { color: '#fff', fontWeight: '700', fontSize: 15 }

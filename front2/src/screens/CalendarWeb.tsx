@@ -8,6 +8,8 @@ type Appointment = {
   date: string;
   duration?: number;
   type?: string;
+  status?: string;
+  notes?: string;
 };
 
 // Load FullCalendar only when this web component is rendered
@@ -21,12 +23,11 @@ type Props = {
   appointments: Appointment[];
   onSelect?: (a: Appointment) => void;
   onCreate?: (initial?: string | null) => void;
+  onUpdateStatus?: (id: string, status: string) => void;
 };
 
-export default function CalendarWeb({ appointments, onSelect, onCreate }: Props) {
-  const [clickCount, setClickCount] = useState(0);
-  const [clickTimer, setClickTimer] = useState<number | null>(null);
-  const [lastClickedEvent, setLastClickedEvent] = useState<any>(null);
+export default function CalendarWeb({ appointments, onSelect, onCreate, onUpdateStatus }: Props) {
+  const calendarRef = useRef<any>(null);
   // compute today's appointments for the left summary
   const todayKey = new Date().toDateString();
   const todays = appointments.filter(a => {
@@ -61,50 +62,145 @@ export default function CalendarWeb({ appointments, onSelect, onCreate }: Props)
     return () => {};
   }, []);
 
-  // Handle double-click on event
+  // Status colors
+  const statusColors: Record<string, string> = {
+    scheduled: '#1976d2',
+    completed: '#616161',
+    cancelled: '#d32f2f',
+    noShow: '#f57c00'
+  };
+
+  const statusLabels: Record<string, string> = {
+    scheduled: 'Planifié',
+    completed: 'Terminé',
+    cancelled: 'Annulé',
+    noShow: 'Absent'
+  };
+
+  // Calculate stats for sidebar
+  const now = new Date();
+  const upcomingToday = todays.filter(a => {
+    const d = new Date(a.date);
+    return d.getTime() > now.getTime() && a.status !== 'completed' && a.status !== 'cancelled';
+  });
+  const nextAppointment = upcomingToday.length > 0 ? upcomingToday[0] : null;
+
+  // Handle single click on event
   const handleEventClick = (info: any) => {
     const appointment = info.event.extendedProps?.appointment;
     if (!appointment) return;
+    onSelect && onSelect(appointment);
+  };
 
-    if (clickTimer) {
-      // Double click detected
-      window.clearTimeout(clickTimer);
-      setClickTimer(null);
-      setClickCount(0);
-      setLastClickedEvent(null);
-      // Trigger onSelect for double-click (detail view)
-      onSelect && onSelect(appointment);
-    } else {
-      // First click
-      setClickCount(1);
-      setLastClickedEvent(appointment);
-      const timer = window.setTimeout(() => {
-        // Single click timeout - do nothing or show quick preview
-        setClickCount(0);
-        setClickTimer(null);
-        setLastClickedEvent(null);
-      }, 300);
-      setClickTimer(timer as any);
-    }
+  // Handle drag & drop
+  const handleEventDrop = async (info: any) => {
+    const appointment = info.event.extendedProps?.appointment;
+    if (!appointment || !onUpdateStatus) return;
+    
+    // Update appointment date via API would go here
+    console.log('Event dropped:', appointment._id, 'new date:', info.event.start);
+    // For now, we'll just revert if needed
+    // info.revert();
+  };
+
+  // Handle resize
+  const handleEventResize = async (info: any) => {
+    const appointment = info.event.extendedProps?.appointment;
+    if (!appointment) return;
+    
+    const newDuration = Math.round((info.event.end - info.event.start) / 60000);
+    console.log('Event resized:', appointment._id, 'new duration:', newDuration);
+    // Update via API would go here
+    // info.revert();
   };
 
   return (
     <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-      <aside style={{ width: 320 }}>
-        <div style={{ padding: 12, background: '#fff', borderRadius: 8, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-          <h3>Rendez-vous aujourd'hui</h3>
-          {todays.length === 0 && <div style={{ color: '#666' }}>Aucun rendez-vous</div>}
-          {todays.map(a => {
+      <aside style={{ width: 340 }}>
+        <div style={{ padding: 16, background: '#fff', borderRadius: 8, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <h3 style={{ marginTop: 0, marginBottom: 12, fontSize: 18 }}>Aujourd'hui</h3>
+          
+          {/* Summary stats */}
+          {todays.length > 0 && (
+            <div style={{ padding: 10, background: '#f5f5f5', borderRadius: 6, marginBottom: 12, fontSize: 14 }}>
+              <span style={{ fontWeight: 600 }}>{todays.length} RDV</span>
+              <span style={{ color: '#666' }}> • </span>
+              <span style={{ color: '#2e7d32' }}>{upcomingToday.length} à venir</span>
+            </div>
+          )}
+
+          {todays.length === 0 && <div style={{ color: '#666', padding: 8 }}>Aucun rendez-vous</div>}
+          
+          {todays.map((a, idx) => {
             const d = new Date(a.date);
             const local = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
             const time = local.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false });
+            const isPast = d.getTime() < now.getTime();
+            const isNext = nextAppointment?._id === a._id;
+            const color = statusColors[a.status || 'scheduled'] || '#1976d2';
+            
             return (
-              <div key={a._id || a.date} style={{ paddingTop: 8, paddingBottom: 8, marginTop: 8, cursor: 'pointer' }} onClick={() => onSelect && onSelect(a)}>
-                <div style={{ fontWeight: 700 }}>{time} — {a.patientName || `${a.patientFirstName} ${a.patientLastName}`}</div>
-                <div style={{ color: '#666' }}>{a.type || 'Consultation'}</div>
+              <div 
+                key={a._id || a.date} 
+                style={{ 
+                  padding: 10, 
+                  marginTop: 8, 
+                  cursor: 'pointer',
+                  borderLeft: `4px solid ${color}`,
+                  paddingLeft: 12,
+                  background: isPast ? '#fafafa' : '#fff',
+                  borderRadius: 4,
+                  position: 'relative'
+                }} 
+                onClick={() => onSelect && onSelect(a)}
+              >
+                {isNext && (
+                  <div style={{ 
+                    position: 'absolute', 
+                    top: -6, 
+                    right: 8, 
+                    background: '#ff9800', 
+                    color: '#fff', 
+                    fontSize: 10, 
+                    padding: '2px 6px', 
+                    borderRadius: 10, 
+                    fontWeight: 600 
+                  }}>À VENIR</div>
+                )}
+                <div style={{ fontWeight: 700, opacity: isPast ? 0.6 : 1 }}>
+                  {time} — {a.patientName || `${a.patientFirstName} ${a.patientLastName}`}
+                </div>
+                <div style={{ color: '#666', fontSize: 13, marginTop: 2, opacity: isPast ? 0.6 : 1 }}>
+                  {a.type || 'Consultation'} • {statusLabels[a.status || 'scheduled']}
+                </div>
+                
+                {/* Quick actions */}
+                {!isPast && a.status !== 'completed' && a.status !== 'cancelled' && onUpdateStatus && (
+                  <div style={{ marginTop: 8, display: 'flex', gap: 4 }} onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={() => onUpdateStatus(a._id!, 'completed')}
+                      style={{ flex: 1, padding: '4px 8px', fontSize: 11, background: '#2e7d32', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}
+                    >✓ Terminé</button>
+                    <button
+                      onClick={() => onUpdateStatus(a._id!, 'noShow')}
+                      style={{ flex: 1, padding: '4px 8px', fontSize: 11, background: '#f57c00', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}
+                    >✗ Absent</button>
+                  </div>
+                )}
               </div>
             );
           })}
+
+          {/* Legend */}
+          <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid #e0e0e0' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: '#666' }}>Légende</div>
+            {Object.entries(statusLabels).map(([key, label]) => (
+              <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, fontSize: 12 }}>
+                <div style={{ width: 12, height: 12, borderRadius: 2, background: statusColors[key] }} />
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </aside>
 
@@ -112,6 +208,7 @@ export default function CalendarWeb({ appointments, onSelect, onCreate }: Props)
         <div ref={calendarContainerRef} style={{ height: 'calc(100vh - 160px)', minHeight: 480, position: 'relative' }}>
           {/* @ts-ignore */}
           <FullCalendar
+            ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
             initialView="timeGridWeek"
             locale={frLocale || 'fr'}
@@ -125,12 +222,14 @@ export default function CalendarWeb({ appointments, onSelect, onCreate }: Props)
             slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
             allDaySlot={false}
             selectable={true}
+            editable={true}
+            eventDurationEditable={true}
+            eventStartEditable={true}
+            nowIndicator={true}
             dateClick={(info: any) => {
-              // info.dateStr is an ISO-ish string in local timezone
               onCreate && onCreate(info.dateStr);
             }}
             select={(info: any) => {
-              // selection of a timespan
               onCreate && onCreate(info.startStr);
             }}
             expandRows={true}
@@ -139,10 +238,26 @@ export default function CalendarWeb({ appointments, onSelect, onCreate }: Props)
               const d = new Date(a.date);
               const local = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
               const end = new Date(local.getTime() + ((a.duration || 30) * 60000));
-              return { id: a._id, title: a.patientName || `${a.patientFirstName} ${a.patientLastName}`, start: local, end, extendedProps: { appointment: a } };
+              const color = statusColors[a.status || 'scheduled'] || '#1976d2';
+              return { 
+                id: a._id, 
+                title: a.patientName || `${a.patientFirstName} ${a.patientLastName}`, 
+                start: local, 
+                end, 
+                backgroundColor: color,
+                borderColor: color,
+                extendedProps: { appointment: a } 
+              };
             })}
             eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
             eventClick={handleEventClick}
+            eventDrop={handleEventDrop}
+            eventResize={handleEventResize}
+            eventMouseEnter={(info: any) => {
+              const a = info.event.extendedProps?.appointment;
+              if (!a) return;
+              info.el.title = `${a.patientName || a.patientFirstName + ' ' + a.patientLastName}\n${a.type || 'Consultation'}\n${statusLabels[a.status || 'scheduled']}${a.notes ? '\n' + a.notes : ''}`;
+            }}
             height={computedHeight || '100%'}
           />
 
