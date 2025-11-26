@@ -148,8 +148,13 @@ export default function CalendarMobile({ appointments, onSelect }: Props) {
 
   return (
     <View style={styles.container}>
-      {/* Header with navigation */}
+      {/* Header harmonisé avec Patients/Soins */}
       <View style={styles.header}>
+        <Text style={styles.title}>Agenda</Text>
+        <Text style={styles.subtitle}>
+          {todaysAppointments.length} rendez-vous {todaysAppointments.length > 1 ? 'prévus' : 'prévu'}
+        </Text>
+        
         <View style={styles.navBar}>
           <Pressable onPress={goToPreviousDay} style={styles.navButton}>
             <Text style={styles.navArrow}>‹</Text>
@@ -165,9 +170,6 @@ export default function CalendarMobile({ appointments, onSelect }: Props) {
           </Pressable>
         </View>
         <Text style={styles.dateTitle}>{formattedDate}</Text>
-        <Text style={styles.appointmentCount}>
-          {todaysAppointments.length} rendez-vous {todaysAppointments.length > 1 ? 'prévus' : 'prévu'}
-        </Text>
       </View>
 
       {/* Timeline */}
@@ -229,16 +231,17 @@ export default function CalendarMobile({ appointments, onSelect }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { backgroundColor: '#fff', paddingTop: 12, paddingBottom: 16, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#e0e0e0' },
-  navBar: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  header: { backgroundColor: '#fff', padding: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#e0e0e0' },
+  title: { fontSize: 24, fontWeight: '700', color: '#212121', marginBottom: 4 },
+  subtitle: { fontSize: 14, color: '#666', marginBottom: 12 },
+  navBar: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   navButton: { padding: 8, backgroundColor: '#f5f5f5', borderRadius: 8, width: 40, alignItems: 'center' },
   navArrow: { fontSize: 24, fontWeight: '700', color: '#333' },
   todayButton: { flex: 1, padding: 12, backgroundColor: '#1976d2', borderRadius: 8, alignItems: 'center' },
   todayButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
   calendarButton: { padding: 8, backgroundColor: '#f5f5f5', borderRadius: 8, width: 40, alignItems: 'center' },
   calendarIcon: { fontSize: 20 },
-  dateTitle: { fontSize: 20, fontWeight: '700', color: '#333', marginBottom: 4, textTransform: 'capitalize' },
-  appointmentCount: { fontSize: 14, color: '#666' },
+  dateTitle: { fontSize: 14, fontWeight: '500', color: '#666', textTransform: 'capitalize' },
   timeline: { flex: 1, paddingHorizontal: 16 },
   timeSlot: { flexDirection: 'row', alignItems: 'flex-start', minHeight: 60 },
   timeLabel: { width: 50, paddingTop: 4, fontSize: 13, fontWeight: '600', color: '#666' },

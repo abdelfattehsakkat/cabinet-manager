@@ -64,11 +64,13 @@ export default function CalendarScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Calendrier</Text>
       {isSmall ? (
         <CalendarMobile appointments={appointments} onSelect={(a) => openDetail(a)} />
       ) : (
-        <CalendarWeb appointments={appointments} onSelect={(a) => openDetail(a)} onCreate={(initial) => openCreate(initial)} onUpdateStatus={updateAppointmentStatus} />
+        <>
+          <Text style={styles.title}>Calendrier</Text>
+          <CalendarWeb appointments={appointments} onSelect={(a) => openDetail(a)} onCreate={(initial) => openCreate(initial)} onUpdateStatus={updateAppointmentStatus} />
+        </>
       )}
 
       {/* floating create button for small screens (mobile) */}

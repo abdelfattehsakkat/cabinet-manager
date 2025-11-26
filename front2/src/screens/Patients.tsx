@@ -245,13 +245,16 @@ export default function Patients(_props: Props) {
           )}
         </View>
 
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={() => { setSelectedPatient(null); setEditVisible(true); }}
-        >
-          <Text style={styles.addButtonIcon}>＋</Text>
-          <Text style={styles.addButtonText}>Nouveau patient</Text>
-        </TouchableOpacity>
+        {/* Bouton Nouveau patient - uniquement web */}
+        {isWeb && (
+          <TouchableOpacity 
+            style={styles.addButton}
+            onPress={() => { setSelectedPatient(null); setEditVisible(true); }}
+          >
+            <Text style={styles.addButtonIcon}>＋</Text>
+            <Text style={styles.addButtonText}>Nouveau patient</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Loading */}
@@ -335,6 +338,16 @@ export default function Patients(_props: Props) {
         </View>
       )}
 
+      {/* FAB - Bouton flottant mobile */}
+      {!isWeb && (
+        <TouchableOpacity 
+          style={styles.fab}
+          onPress={() => { setSelectedPatient(null); setEditVisible(true); }}
+        >
+          <Text style={styles.fabIcon}>＋</Text>
+        </TouchableOpacity>
+      )}
+
       {/* Modals */}
       <PatientDetailModal 
         visible={detailVisible} 
@@ -398,7 +411,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     borderRadius: 12,
     paddingHorizontal: 12,
-    marginBottom: 12,
     borderWidth: 1,
     borderColor: '#e0e0e0',
   },
@@ -430,6 +442,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
+    marginTop: 12,
   },
   addButtonIcon: {
     fontSize: 20,
@@ -440,6 +453,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
+  },
+  // === FAB - Bouton flottant mobile ===
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 100,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#1976d2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#1976d2',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  fabIcon: {
+    fontSize: 28,
+    color: '#fff',
+    fontWeight: '300',
   },
   loadingContainer: {
     flex: 1,
