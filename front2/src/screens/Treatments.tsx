@@ -101,48 +101,44 @@ export default function Treatments(_props: Props) {
     </View>
   );
 
-  // Render card mobile - compact
+  // Render card mobile - ultra compact (une ligne)
   const renderCard = ({ item }: { item: Patient }) => (
     <Pressable 
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       onPress={() => onViewTreatments(item)}
     >
-      {/* Avatar avec initiales */}
+      {/* Avatar compact avec numéro de fiche */}
       <View style={[styles.avatar, { backgroundColor: getAvatarColor(item.lastName) }]}>
-        <Text style={styles.avatarText}>{getInitials(item.firstName, item.lastName)}</Text>
+        <Text style={styles.avatarText}>{item.patientNumber || '—'}</Text>
       </View>
 
-      {/* Contenu */}
+      {/* Infos patient - une ligne */}
       <View style={styles.cardContent}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.patientName}>
-            {item.firstName} {item.lastName}
-          </Text>
-          <Text style={styles.patientNumber}>#{item.patientNumber || '—'}</Text>
-        </View>
+        <Text style={styles.patientName} numberOfLines={1}>
+          {item.firstName} {item.lastName}
+        </Text>
+        <Text style={styles.infoText} numberOfLines={1}>
+          {item.phoneNumber ? `📞 ${item.phoneNumber}` : ''}
+          {item.phoneNumber && item.email ? '  •  ' : ''}
+          {item.email ? `📧 ${item.email}` : ''}
+        </Text>
+      </View>
 
-        {/* Informations - compact */}
-        <View style={styles.cardInfo}>
-          {item.phoneNumber && <Text style={styles.infoText}>📞 {item.phoneNumber}</Text>}
-          {item.email && <Text style={styles.infoText} numberOfLines={1}>📧 {item.email}</Text>}
-        </View>
-
-        {/* Actions - compact */}
-        <View style={styles.cardActions}>
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.addAction]}
-            onPress={(e) => { e.stopPropagation(); onAddTreatment(item); }}
-          >
-            <Text style={styles.actionIcon}>➕</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={(e) => { e.stopPropagation(); onViewTreatments(item); }}
-          >
-            <Text style={styles.actionIcon}>👁️</Text>
-          </TouchableOpacity>
-        </View>
+      {/* Actions compactes */}
+      <View style={styles.cardActions}>
+        <TouchableOpacity 
+          style={[styles.actionButton, styles.addAction]}
+          onPress={(e) => { e.stopPropagation(); onAddTreatment(item); }}
+        >
+          <Text style={styles.actionIcon}>➕</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.actionButton}
+          onPress={(e) => { e.stopPropagation(); onViewTreatments(item); }}
+        >
+          <Text style={styles.actionIcon}>👁️</Text>
+        </TouchableOpacity>
       </View>
     </Pressable>
   );
@@ -366,98 +362,63 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 80,
   },
-  // === Mobile Cards - Compact ===
+  // === Mobile Cards - Ultra Compact (une ligne) ===
   card: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 10,
+    borderRadius: 8,
+    marginBottom: 6,
     flexDirection: 'row',
-    padding: 12,
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
+    elevation: 1,
     borderWidth: 1,
     borderColor: '#f0f0f0',
   },
   cardPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.98 }],
+    opacity: 0.85,
+    backgroundColor: '#fafafa',
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 36,
+    height: 36,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 10,
   },
   avatarText: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '700',
     color: '#fff',
   },
   cardContent: {
     flex: 1,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
+    marginRight: 8,
   },
   patientName: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#212121',
-    flex: 1,
-  },
-  patientNumber: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#666',
-    backgroundColor: '#f5f5f5',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginLeft: 8,
-  },
-  cardInfo: {
-    marginBottom: 8,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 2,
-  },
-  infoIcon: {
-    fontSize: 13,
-    marginRight: 4,
   },
   infoText: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 2,
-  },
-  treatmentHint: {
     fontSize: 11,
-    color: '#999',
-    fontStyle: 'italic',
+    color: '#888',
     marginTop: 2,
   },
   cardActions: {
     flexDirection: 'row',
-    gap: 6,
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-    paddingTop: 8,
+    gap: 4,
   },
   actionButton: {
-    flex: 1,
+    width: 32,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
     backgroundColor: '#f5f5f5',
     borderRadius: 6,
   },
@@ -465,16 +426,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#e8f5e9',
   },
   actionIcon: {
-    fontSize: 16,
-  },
-  actionLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#666',
-    marginTop: 2,
-  },
-  addLabel: {
-    color: '#2e7d32',
+    fontSize: 14,
   },
   // === Web Table - Modern ===
   tableContainer: {
