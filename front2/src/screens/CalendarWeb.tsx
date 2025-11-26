@@ -263,7 +263,12 @@ export default function CalendarWeb({ appointments, onSelect, onCreate, onUpdate
 
           {/* floating create button inside web calendar */}
           {onCreate && (
-            <button onClick={() => onCreate && onCreate(null)} style={{ position: 'absolute', right: 20, bottom: 20, background: '#1976d2', color: '#fff', border: 'none', width: 52, height: 52, borderRadius: 26, fontSize: 22, cursor: 'pointer' }}>＋</button>
+            <button onClick={() => {
+              // Date du jour à 09:00 par défaut
+              const today = new Date();
+              today.setHours(9, 0, 0, 0);
+              onCreate(today.toISOString());
+            }} style={{ position: 'absolute', right: 20, bottom: 20, background: '#1976d2', color: '#fff', border: 'none', width: 52, height: 52, borderRadius: 26, fontSize: 22, cursor: 'pointer' }}>＋</button>
           )}
         </div>
       </main>

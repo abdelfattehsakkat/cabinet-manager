@@ -28,8 +28,26 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const debounceRef = useRef<number | null>(null as any);
 
+  // Convert ISO string to datetime-local format (YYYY-MM-DDTHH:mm)
+  const formatForDatetimeLocal = (isoString: string | null | undefined): string => {
+    if (!isoString) return '';
+    try {
+      const date = new Date(isoString);
+      if (isNaN(date.getTime())) return '';
+      // Format: YYYY-MM-DDTHH:mm (required by datetime-local input)
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    } catch {
+      return '';
+    }
+  };
+
   useEffect(() => {
-    setDateStr(initial || '');
+    setDateStr(formatForDatetimeLocal(initial));
     setDuration(String(initialDuration));
   }, [initial, initialDuration, visible]);
 
