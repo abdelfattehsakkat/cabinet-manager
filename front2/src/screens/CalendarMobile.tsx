@@ -12,9 +12,13 @@ type Appointment = {
   status?: string;
 };
 
-type Props = { appointments: Appointment[]; onSelect?: (a: Appointment) => void };
+type Props = { 
+  appointments: Appointment[]; 
+  onSelect?: (a: Appointment) => void;
+  onCreate?: (initialDate: string) => void;
+};
 
-export default function CalendarMobile({ appointments, onSelect }: Props) {
+export default function CalendarMobile({ appointments, onSelect, onCreate }: Props) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
 
@@ -201,12 +205,24 @@ export default function CalendarMobile({ appointments, onSelect }: Props) {
           }
           
           return (
-            <View key={slot} style={styles.timeSlot}>
+            <Pressable 
+              key={slot} 
+              style={styles.timeSlot}
+              onPress={() => {
+                if (onCreate) {
+                  // Créer une date avec le créneau sélectionné
+                  const [hours, minutes] = slot.split(':').map(Number);
+                  const slotDate = new Date(selectedDate);
+                  slotDate.setHours(hours, minutes, 0, 0);
+                  onCreate(slotDate.toISOString());
+                }
+              }}
+            >
               <Text style={[styles.timeLabel, !isHourMark && styles.timeLabelLight]}>{isHourMark ? slot : ''}</Text>
               <View style={styles.emptySlot}>
                 <View style={styles.slotLine} />
               </View>
-            </View>
+            </Pressable>
           );
         })}
       </ScrollView>

@@ -244,17 +244,6 @@ export default function Patients(_props: Props) {
             </TouchableOpacity>
           )}
         </View>
-
-        {/* Bouton Nouveau patient - uniquement web */}
-        {isWeb && (
-          <TouchableOpacity 
-            style={styles.addButton}
-            onPress={() => { setSelectedPatient(null); setEditVisible(true); }}
-          >
-            <Text style={styles.addButtonIcon}>＋</Text>
-            <Text style={styles.addButtonText}>Nouveau patient</Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       {/* Loading */}
@@ -338,15 +327,13 @@ export default function Patients(_props: Props) {
         </View>
       )}
 
-      {/* FAB - Bouton flottant mobile */}
-      {!isWeb && (
-        <TouchableOpacity 
-          style={styles.fab}
-          onPress={() => { setSelectedPatient(null); setEditVisible(true); }}
-        >
-          <Text style={styles.fabIcon}>＋</Text>
-        </TouchableOpacity>
-      )}
+      {/* FAB - Bouton flottant (mobile et web) */}
+      <TouchableOpacity 
+        style={[styles.fab, isWeb && styles.fabWeb]}
+        onPress={() => { setSelectedPatient(null); setEditVisible(true); }}
+      >
+        <Text style={styles.fabIcon}>＋</Text>
+      </TouchableOpacity>
 
       {/* Modals */}
       <PatientDetailModal 
@@ -475,6 +462,10 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: '#fff',
     fontWeight: '300',
+  },
+  fabWeb: {
+    bottom: 30,
+    right: 30,
   },
   loadingContainer: {
     flex: 1,

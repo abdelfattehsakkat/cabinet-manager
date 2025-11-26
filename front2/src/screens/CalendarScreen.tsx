@@ -65,7 +65,11 @@ export default function CalendarScreen() {
   return (
     <View style={styles.container}>
       {isSmall ? (
-        <CalendarMobile appointments={appointments} onSelect={(a) => openDetail(a)} />
+        <CalendarMobile 
+          appointments={appointments} 
+          onSelect={(a) => openDetail(a)} 
+          onCreate={(initial) => openCreate(initial, 30)}
+        />
       ) : (
         <>
           <Text style={styles.title}>Calendrier</Text>
@@ -75,7 +79,12 @@ export default function CalendarScreen() {
 
       {/* floating create button for small screens (mobile) */}
       {isSmall && (
-        <Pressable onPress={() => openCreate(null)} style={styles.fab}>
+        <Pressable onPress={() => {
+          // Date du jour à 09:00 par défaut
+          const today = new Date();
+          today.setHours(9, 0, 0, 0);
+          openCreate(today.toISOString(), 30);
+        }} style={styles.fab}>
           <Text style={{ color: '#fff', fontSize: 24, fontWeight: '700' }}>＋</Text>
         </Pressable>
       )}
