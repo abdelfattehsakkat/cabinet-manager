@@ -406,11 +406,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
   },
-  // === FAB - Bouton flottant mobile ===
+  // === FAB - Bouton flottant ===
   fab: {
     position: 'absolute',
-    right: 20,
-    bottom: 100,
+    right: 24,
+    bottom: 90,
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -427,10 +427,12 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: '#fff',
     fontWeight: '300',
+    lineHeight: 28,
+    textAlign: 'center',
   },
   fabWeb: {
-    bottom: 30,
-    right: 30,
+    bottom: 32,
+    right: 32,
   },
   loadingContainer: {
     flex: 1,

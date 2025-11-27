@@ -100,7 +100,7 @@ export default function CalendarScreen() {
           today.setHours(9, 0, 0, 0);
           openCreate(today.toISOString(), 30);
         }} style={styles.fab}>
-          <Text style={{ color: '#fff', fontSize: 24, fontWeight: '700' }}>＋</Text>
+          <Text style={styles.fabIcon}>＋</Text>
         </Pressable>
       )}
 
@@ -119,7 +119,29 @@ export default function CalendarScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  title: { fontSize: 20, marginBottom: 8 }
-  ,
-  fab: { position: 'absolute', right: 20, bottom: 20, width: 56, height: 56, borderRadius: 28, backgroundColor: '#1976d2', alignItems: 'center', justifyContent: 'center', elevation: 4 }
+  title: { fontSize: 20, marginBottom: 8 },
+  // === FAB - Bouton flottant ===
+  fab: {
+    position: 'absolute',
+    right: 24,
+    bottom: 90,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#1976d2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#1976d2',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  fabIcon: {
+    fontSize: 28,
+    color: '#fff',
+    fontWeight: '300',
+    lineHeight: 28,
+    textAlign: 'center',
+  },
 });

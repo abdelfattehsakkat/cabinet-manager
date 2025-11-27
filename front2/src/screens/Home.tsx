@@ -16,7 +16,6 @@ type Props = {
 
 export default function Home({ onLogout, user }: Props) {
   const [route, setRoute] = useState<'home'|'patients'|'treatments'|'calendar'|'manager'>('home');
-  const [searchQuery, setSearchQuery] = useState('');
   const { width } = useWindowDimensions();
   
   // Permissions basées sur le rôle utilisateur
@@ -40,15 +39,9 @@ export default function Home({ onLogout, user }: Props) {
     case 'manager': Content = <Manager />; break;
   }
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    // TODO: Implement global search logic
-    console.log('Searching for:', query);
-  };
-
   return (
     <View style={styles.container}>
-      <Menu active={route} onChange={setRoute} onLogout={onLogout} onSearch={handleSearch} userPermissions={userPermissions} />
+      <Menu active={route} onChange={setRoute} onLogout={onLogout} userPermissions={userPermissions} user={user} />
       <View style={styles.content}>{Content}</View>
     </View>
   );

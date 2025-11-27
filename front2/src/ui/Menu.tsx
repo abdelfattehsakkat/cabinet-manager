@@ -1,20 +1,24 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Platform, useWindowDimensions, Modal, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Platform, useWindowDimensions, Modal, TouchableOpacity, ScrollView } from 'react-native';
 import ProfileMenu from './ProfileMenu';
 import { MENU_CONFIG } from '../config/menuConfig';
+
+type UserInfo = {
+  firstName?: string;
+  lastName?: string;
+  role?: string;
+};
 
 type Props = {
   active: string;
   onChange: (route: any) => void;
   onLogout?: () => void;
-  onSearch?: (query: string) => void;
   userPermissions?: string[];
+  user?: UserInfo | null;
 };
 
-export default function Menu({ active, onChange, onLogout, onSearch, userPermissions = [] }: Props) {
+export default function Menu({ active, onChange, onLogout, userPermissions = [], user }: Props) {
   const [profileOpen, setProfileOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchFocused, setSearchFocused] = useState(false);
 
   const { width } = useWindowDimensions();
   const isSmall = width < 480;
@@ -24,10 +28,9 @@ export default function Menu({ active, onChange, onLogout, onSearch, userPermiss
   // For hover effect on web
   const [hovered, setHovered] = useState<string | null>(null);
 
-  const handleSearch = (text: string) => {
-    setSearchQuery(text);
-    onSearch && onSearch(text);
-  };
+  // Nom complet de l'utilisateur
+  const userName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : '';
+  const userRole = user?.role || '';
 
   // Filtrer les menus selon les permissions utilisateur
   const menuItems = MENU_CONFIG
@@ -91,18 +94,10 @@ export default function Menu({ active, onChange, onLogout, onSearch, userPermiss
             })}
           </View>
 
-          {/* Search bar for web */}
-          <View style={styles.searchContainer}>
-            <Text style={styles.searchIcon}>🔍</Text>
-            <TextInput
-              style={[styles.searchInput, searchFocused && styles.searchInputFocused]}
-              placeholder="Rechercher..."
-              placeholderTextColor="rgba(255,255,255,0.5)"
-              value={searchQuery}
-              onChangeText={handleSearch}
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
-            />
+          {/* User info */}
+          <View style={styles.userInfoContainer}>
+            <Text style={styles.userName}>{userName || 'Utilisateur'}</Text>
+            {userRole && <Text style={styles.userRole}>{userRole}</Text>}
           </View>
         </>
       )}
@@ -244,26 +239,22 @@ const styles = StyleSheet.create({
   tabUnderline: { height: 3, width: '100%', backgroundColor: 'transparent', marginTop: 6, borderRadius: 3 },
   tabUnderlineActive: { backgroundColor: 'rgba(255,255,255,0.9)' },
 
-  // Search bar
-  searchContainer: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: 'rgba(255,255,255,0.12)', 
-    borderRadius: 20, 
-    paddingHorizontal: 12, 
-    paddingVertical: 6,
+  // User info
+  userInfoContainer: { 
+    flexDirection: 'column', 
+    alignItems: 'flex-end', 
     marginRight: 12,
-    minWidth: 200,
   },
-  searchIcon: { fontSize: 16, marginRight: 6 },
-  searchInput: { 
-    flex: 1, 
+  userName: { 
     color: '#fff', 
-    fontSize: 14,
-    ...(Platform.OS === 'web' && { outlineStyle: 'none' as any }),
+    fontSize: 15,
+    fontWeight: '600',
   },
-  searchInputFocused: {
-    backgroundColor: 'rgba(255,255,255,0.02)',
+  userRole: { 
+    color: 'rgba(255,255,255,0.7)', 
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 2,
   },
 
   // Pills style (web)
