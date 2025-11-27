@@ -62,6 +62,15 @@ export default function CalendarScreen() {
     }
   }
 
+  async function moveAppointment(id: string, newDate: string, newDuration?: number) {
+    const updateData: { date: string; duration?: number } = { date: newDate };
+    if (newDuration !== undefined) {
+      updateData.duration = newDuration;
+    }
+    await api.put(`/appointments/${id}`, updateData);
+    await loadAppointments();
+  }
+
   return (
     <View style={styles.container}>
       {isSmall ? (
@@ -73,7 +82,13 @@ export default function CalendarScreen() {
       ) : (
         <>
           <Text style={styles.title}>Calendrier</Text>
-          <CalendarWeb appointments={appointments} onSelect={(a) => openDetail(a)} onCreate={(initial) => openCreate(initial)} onUpdateStatus={updateAppointmentStatus} />
+          <CalendarWeb 
+            appointments={appointments} 
+            onSelect={(a) => openDetail(a)} 
+            onCreate={(initial) => openCreate(initial)} 
+            onUpdateStatus={updateAppointmentStatus}
+            onMove={moveAppointment}
+          />
         </>
       )}
 

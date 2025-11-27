@@ -22,4 +22,8 @@ export const getAppointments = async (opts: { startDate?: string | Date; endDate
   return api.get(path) as Promise<Appointment[]>;
 };
 
-export default { getAppointments };
+export const updateAppointment = async (id: string, data: Partial<Appointment>) => {
+  return api.put(`/appointments/${id}`, data) as Promise<Appointment>;
+};
+
+export default { getAppointments, updateAppointment };

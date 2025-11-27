@@ -24,16 +24,16 @@ type Props = {
   onSelect?: (a: Appointment) => void;
   onCreate?: (initial?: string | null) => void;
   onUpdateStatus?: (id: string, status: string) => void;
+  onMove?: (id: string, newDate: string, newDuration?: number) => Promise<void>;
 };
 
-export default function CalendarWeb({ appointments, onSelect, onCreate, onUpdateStatus }: Props) {
+export default function CalendarWeb({ appointments, onSelect, onCreate, onUpdateStatus, onMove }: Props) {
   const calendarRef = useRef<any>(null);
   // compute today's appointments for the left summary
   const todayKey = new Date().toDateString();
   const todays = appointments.filter(a => {
     const d = new Date(a.date);
-    const local = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
-    return new Date(local.getFullYear(), local.getMonth(), local.getDate()).toDateString() === todayKey;
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate()).toDateString() === todayKey;
   }).sort((l, r) => new Date(l.date).getTime() - new Date(r.date).getTime());
 
   if (!FullCalendar) return <div>Calendar (web) not available</div>;
@@ -92,26 +92,72 @@ export default function CalendarWeb({ appointments, onSelect, onCreate, onUpdate
     onSelect && onSelect(appointment);
   };
 
+  // Convertir une date en ISO string en préservant l'heure locale (évite le décalage UTC)
+  const toLocalISOString = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  };
+
   // Handle drag & drop
   const handleEventDrop = async (info: any) => {
     const appointment = info.event.extendedProps?.appointment;
-    if (!appointment || !onUpdateStatus) return;
+    if (!appointment?._id) {
+      info.revert();
+      return;
+    }
     
-    // Update appointment date via API would go here
-    console.log('Event dropped:', appointment._id, 'new date:', info.event.start);
-    // For now, we'll just revert if needed
-    // info.revert();
+    const startDate = info.event.start;
+    if (!startDate) {
+      info.revert();
+      return;
+    }
+    
+    // Utiliser toLocalISOString pour préserver l'heure locale
+    const newDate = toLocalISOString(startDate);
+
+    try {
+      if (onMove) {
+        await onMove(appointment._id, newDate);
+      }
+    } catch (err) {
+      console.error('Failed to move appointment:', err);
+      info.revert();
+      alert('Erreur lors du déplacement du rendez-vous');
+    }
   };
 
   // Handle resize
   const handleEventResize = async (info: any) => {
     const appointment = info.event.extendedProps?.appointment;
-    if (!appointment) return;
+    if (!appointment?._id) {
+      info.revert();
+      return;
+    }
     
+    const startDate = info.event.start;
     const newDuration = Math.round((info.event.end - info.event.start) / 60000);
-    console.log('Event resized:', appointment._id, 'new duration:', newDuration);
-    // Update via API would go here
-    // info.revert();
+    
+    if (!startDate) {
+      info.revert();
+      return;
+    }
+    
+    const newDate = toLocalISOString(startDate);
+
+    try {
+      if (onMove) {
+        await onMove(appointment._id, newDate, newDuration);
+      }
+    } catch (err) {
+      console.error('Failed to resize appointment:', err);
+      info.revert();
+      alert('Erreur lors du redimensionnement du rendez-vous');
+    }
   };
 
   return (
@@ -133,8 +179,7 @@ export default function CalendarWeb({ appointments, onSelect, onCreate, onUpdate
           
           {todays.map((a, idx) => {
             const d = new Date(a.date);
-            const local = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
-            const time = local.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false });
+            const time = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false });
             const isPast = d.getTime() < now.getTime();
             const isNext = nextAppointment?._id === a._id;
             const color = statusColors[a.status || 'scheduled'] || '#1976d2';
@@ -234,15 +279,15 @@ export default function CalendarWeb({ appointments, onSelect, onCreate, onUpdate
             }}
             expandRows={true}
             contentHeight={'auto'}
+            timeZone={'local'}
             events={appointments.map(a => {
-              const d = new Date(a.date);
-              const local = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
-              const end = new Date(local.getTime() + ((a.duration || 30) * 60000));
+              const start = new Date(a.date);
+              const end = new Date(start.getTime() + ((a.duration || 30) * 60000));
               const color = statusColors[a.status || 'scheduled'] || '#1976d2';
               return { 
                 id: a._id, 
                 title: a.patientName || `${a.patientFirstName} ${a.patientLastName}`, 
-                start: local, 
+                start, 
                 end, 
                 backgroundColor: color,
                 borderColor: color,
