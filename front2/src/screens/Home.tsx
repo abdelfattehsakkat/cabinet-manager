@@ -7,20 +7,27 @@ import Patients from './Patients';
 import Treatments from './Treatments';
 import CalendarScreen from './CalendarScreen';
 import Manager from './Manager';
+import { UserInfo } from '../../App';
 
-type Props = { onLogout?: () => void };
+type Props = { 
+  onLogout?: () => void;
+  user?: UserInfo | null;
+};
 
-export default function Home({ onLogout }: Props) {
+export default function Home({ onLogout, user }: Props) {
   const [route, setRoute] = useState<'home'|'patients'|'treatments'|'calendar'|'manager'>('home');
   const [searchQuery, setSearchQuery] = useState('');
   const { width } = useWindowDimensions();
+  
+  // Permissions basées sur le rôle utilisateur
+  const userPermissions = user?.role ? [user.role] : [];
   
   // Détection mobile : width < 768px ou platform native
   const isMobile = width < 768 || Platform.OS !== 'web';
 
   // Si mobile, utiliser HomeMobile avec TabBar
   if (isMobile) {
-    return <HomeMobile onLogout={onLogout} />;
+    return <HomeMobile onLogout={onLogout} user={user} />;
   }
 
   // Sinon, utiliser la version web avec Menu horizontal
@@ -41,7 +48,7 @@ export default function Home({ onLogout }: Props) {
 
   return (
     <View style={styles.container}>
-      <Menu active={route} onChange={setRoute} onLogout={onLogout} onSearch={handleSearch} />
+      <Menu active={route} onChange={setRoute} onLogout={onLogout} onSearch={handleSearch} userPermissions={userPermissions} />
       <View style={styles.content}>{Content}</View>
     </View>
   );

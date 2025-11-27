@@ -45,17 +45,35 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
 // PUT /api/users/:id
 export const updateUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { firstName, lastName, email, role, phoneNumber, specialization } = req.body;
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { firstName, lastName, email, role, phoneNumber, specialization },
-      { new: true }
-    ).select('-password');
+    const { firstName, lastName, email, password, role, phoneNumber, specialization } = req.body;
+    
+    // Find user first
+    const user = await User.findById(req.params.id);
     if (!user) {
       res.status(404).json({ message: 'User not found' });
       return;
     }
-    res.json(user);
+    
+    // Update fields
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (email) user.email = email;
+    if (role) user.role = role;
+    if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
+    if (specialization !== undefined) user.specialization = specialization;
+    
+    // Update password if provided (will be hashed by pre-save hook)
+    if (password && password.trim().length >= 6) {
+      user.password = password;
+    }
+    
+    await user.save();
+    
+    // Return user without password
+    const userResponse = user.toObject();
+    delete (userResponse as any).password;
+    
+    res.json(userResponse);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

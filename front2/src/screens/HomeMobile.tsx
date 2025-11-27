@@ -6,16 +6,21 @@ import Patients from './Patients';
 import Treatments from './Treatments';
 import CalendarScreen from './CalendarScreen';
 import Manager from './Manager';
+import { UserInfo } from '../../App';
 
 type Props = { 
   onLogout?: () => void;
+  user?: UserInfo | null;
 };
 
 /**
  * Composant Home pour mobile avec TabBar en bas
  */
-export default function HomeMobile({ onLogout }: Props) {
+export default function HomeMobile({ onLogout, user }: Props) {
   const [route, setRoute] = useState<string>('home');
+  
+  // Permissions basées sur le rôle utilisateur
+  const userPermissions = user?.role ? [user.role] : [];
 
   let Content = null;
   switch(route) {
@@ -32,7 +37,7 @@ export default function HomeMobile({ onLogout }: Props) {
       <View style={styles.content}>
         {Content}
       </View>
-      <TabBar active={route} onChange={setRoute} onLogout={onLogout} />
+      <TabBar active={route} onChange={setRoute} onLogout={onLogout} userPermissions={userPermissions} />
     </View>
   );
 }

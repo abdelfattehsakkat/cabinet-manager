@@ -57,6 +57,7 @@ export const MENU_CONFIG: MenuItemConfig[] = [
     key: 'manager',
     label: 'Manager',
     icon: '⚙️',
+    requiredPermission: 'ADMIN', // Seuls les admins peuvent voir ce menu
     showInTabBar: false, // Mis dans "Plus" car on a déjà 4 items (+ Profil = 5)
     showInHamburger: true,
     order: 5,

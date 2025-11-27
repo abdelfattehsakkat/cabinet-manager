@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Platform, useWindowDimensions, Modal, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import ProfileMenu from './ProfileMenu';
+import { MENU_CONFIG } from '../config/menuConfig';
 
 type Props = {
   active: string;
   onChange: (route: any) => void;
   onLogout?: () => void;
   onSearch?: (query: string) => void;
+  userPermissions?: string[];
 };
 
-export default function Menu({ active, onChange, onLogout, onSearch }: Props) {
+export default function Menu({ active, onChange, onLogout, onSearch, userPermissions = [] }: Props) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
@@ -27,13 +29,11 @@ export default function Menu({ active, onChange, onLogout, onSearch }: Props) {
     onSearch && onSearch(text);
   };
 
-  const menuItems = [
-    { key: 'home', label: 'Accueil', icon: '🏠' },
-    { key: 'patients', label: 'Patients', icon: '👥' },
-    { key: 'treatments', label: 'Soins', icon: '💉' },
-    { key: 'calendar', label: 'Calendrier', icon: '📅' },
-    { key: 'manager', label: 'Manager', icon: '⚙️' },
-  ];
+  // Filtrer les menus selon les permissions utilisateur
+  const menuItems = MENU_CONFIG
+    .filter(item => !item.requiredPermission || userPermissions.includes(item.requiredPermission))
+    .sort((a, b) => a.order - b.order)
+    .map(item => ({ key: item.key, label: item.label, icon: item.icon }));
 
   // Web-only style helpers
   const webTransition = Platform.OS === 'web' ? {
