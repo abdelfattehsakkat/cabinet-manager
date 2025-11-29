@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Modal, View, Text, TextInput, Pressable, StyleSheet, Platform, FlatList, ScrollView, KeyboardAvoidingView, Dimensions } from 'react-native';
+import { Modal, View, Text, TextInput, Pressable, StyleSheet, Platform, FlatList, ScrollView, Dimensions, useWindowDimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../api/client';
 import { searchPatients, createPatient, Patient } from '../api/patients';
@@ -207,17 +207,19 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
     />
   );
 
+  const { width } = useWindowDimensions();
+  const isWeb = width >= 768 || Platform.OS === 'web';
+
   return (
-    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
-      <KeyboardAvoidingView 
-        style={styles.backdrop} 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-      >
-        <View style={styles.sheet}>
+    <Modal visible={visible} animationType="slide" transparent={isWeb} onRequestClose={onClose}>
+      <View style={[styles.backdrop, !isWeb && styles.backdropMobile]}>
+        <View style={[styles.modal, isWeb ? styles.modalWeb : styles.modalMobile]}>
+          {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>Nouveau rendez-vous</Text>
-            <Pressable onPress={onClose}><Text style={styles.close}>✕</Text></Pressable>
+            <Pressable onPress={onClose} style={styles.closeBtn}>
+              <Text style={styles.closeIcon}>✕</Text>
+            </Pressable>
           </View>
 
           {/* Mode Toggle */}
@@ -238,12 +240,11 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
 
           {/* Scrollable body */}
           <ScrollView 
-            style={styles.scrollContainer}
-            contentContainerStyle={styles.scrollContent}
+            style={styles.content}
+            contentContainerStyle={styles.contentContainer}
             showsVerticalScrollIndicator={true}
             keyboardShouldPersistTaps="handled"
           >
-            <View style={styles.body}>
             {/* EXISTING PATIENT MODE */}
             {mode === 'existing' && (
               <View style={{ marginBottom: 16, zIndex: 100 }}>
@@ -419,10 +420,9 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
                 {loading ? 'Création en cours...' : 'Créer le rendez-vous'}
               </Text>
             </Pressable>
-            </View>
           </ScrollView>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }
@@ -431,46 +431,69 @@ const styles = StyleSheet.create({
   backdrop: { 
     flex: 1, 
     backgroundColor: 'rgba(0,0,0,0.5)', 
-    justifyContent: 'flex-end',
-    ...Platform.select({
-      web: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 12
-      },
-      default: {}
-    })
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 12
   },
-  sheet: { 
-    backgroundColor: '#fff', 
-    borderRadius: Platform.OS === 'web' ? 10 : 20,
-    borderBottomLeftRadius: Platform.OS === 'web' ? 10 : 0,
-    borderBottomRightRadius: Platform.OS === 'web' ? 10 : 0,
-    padding: Platform.OS === 'web' ? 20 : 16,
-    paddingBottom: Platform.OS === 'web' ? 20 : 32,
-    maxWidth: Platform.OS === 'web' ? 760 : '100%', 
-    width: Platform.OS === 'web' ? '90%' : '100%',
-    alignSelf: 'center', 
-    maxHeight: Platform.OS === 'web' ? '90%' : '85%',
-    display: 'flex',
-    flexDirection: 'column',
+  backdropMobile: {
+    backgroundColor: '#fff',
+    padding: 0,
   },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  modal: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    width: '100%',
+    maxHeight: '90%',
+  },
+  modalWeb: {
+    maxWidth: 700,
+  },
+  modalMobile: {
+    width: '100%',
+    height: '100%',
+    maxHeight: '100%',
+    borderRadius: 0,
+  },
+  header: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
   title: { fontSize: 20, fontWeight: '800' },
-  close: { fontSize: 22, padding: 6, color: '#666' },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeIcon: { 
+    fontSize: 18, 
+    color: '#666' 
+  },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    padding: 16,
+    paddingBottom: 40,
+  },
   toggleContainer: { 
     flexDirection: 'row', 
     backgroundColor: '#f5f5f5', 
     borderRadius: 8, 
     padding: 4,
-    marginBottom: 20,
-    flexShrink: 0
+    marginBottom: 16,
   },
   scrollContainer: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 20,
+    paddingBottom: 40,
   },
   toggleButton: { 
     flex: 1, 

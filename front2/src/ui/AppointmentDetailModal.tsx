@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, TextInput, Pressable, StyleSheet, Platform, ScrollView, KeyboardAvoidingView, Alert } from 'react-native';
+import { Modal, View, Text, TextInput, Pressable, StyleSheet, Platform, ScrollView, KeyboardAvoidingView, Alert, useWindowDimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../api/client';
 
@@ -174,22 +174,24 @@ export default function AppointmentDetailModal({ visible, appointment, onClose, 
     />
   );
 
+  const { width } = useWindowDimensions();
+  const isWeb = width >= 768 || Platform.OS === 'web';
+
   return (
-    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
-      <KeyboardAvoidingView 
-        style={styles.backdrop}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-      >
-        <View style={styles.sheet}>
+    <Modal visible={visible} animationType="slide" transparent={isWeb} onRequestClose={onClose}>
+      <View style={[styles.backdrop, !isWeb && styles.backdropMobile]}>
+        <View style={[styles.modal, isWeb ? styles.modalWeb : styles.modalMobile]}>
+          {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>Détails du rendez-vous</Text>
-            <Pressable onPress={onClose}><Text style={styles.close}>✕</Text></Pressable>
+            <Pressable onPress={onClose} style={styles.closeBtn}>
+              <Text style={styles.closeIcon}>✕</Text>
+            </Pressable>
           </View>
 
           <ScrollView 
-            style={styles.scrollContainer} 
-            contentContainerStyle={styles.scrollContent}
+            style={styles.content} 
+            contentContainerStyle={styles.contentContainer}
             showsVerticalScrollIndicator={true}
             keyboardShouldPersistTaps="handled"
           >
@@ -382,7 +384,7 @@ export default function AppointmentDetailModal({ visible, appointment, onClose, 
             </View>
           </ScrollView>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }
@@ -391,38 +393,57 @@ const styles = StyleSheet.create({
   backdrop: { 
     flex: 1, 
     backgroundColor: 'rgba(0,0,0,0.5)', 
-    justifyContent: 'flex-end',
-    ...Platform.select({
-      web: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 12
-      },
-      default: {}
-    })
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 12
   },
-  sheet: { 
-    backgroundColor: '#fff', 
-    borderRadius: Platform.OS === 'web' ? 10 : 20,
-    borderBottomLeftRadius: Platform.OS === 'web' ? 10 : 0,
-    borderBottomRightRadius: Platform.OS === 'web' ? 10 : 0,
-    padding: Platform.OS === 'web' ? 20 : 16,
-    paddingBottom: Platform.OS === 'web' ? 20 : 32,
-    maxWidth: Platform.OS === 'web' ? 600 : '100%', 
-    width: Platform.OS === 'web' ? '90%' : '100%',
-    maxHeight: Platform.OS === 'web' ? '90%' : '85%',
-    ...Platform.select({
-      web: {},
-      default: {
-        maxHeight: '95%'
-      }
-    })
+  backdropMobile: {
+    backgroundColor: '#fff',
+    padding: 0,
   },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  modal: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    width: '100%',
+    maxHeight: '90%',
+  },
+  modalWeb: {
+    maxWidth: 600,
+  },
+  modalMobile: {
+    width: '100%',
+    height: '100%',
+    maxHeight: '100%',
+    borderRadius: 0,
+  },
+  header: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
   title: { fontSize: 20, fontWeight: '800' },
-  close: { fontSize: 22, padding: 6, color: '#666' },
-  scrollContainer: { flex: 1 },
-  scrollContent: { paddingBottom: 20 },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeIcon: { 
+    fontSize: 18, 
+    color: '#666' 
+  },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    padding: 16,
+    paddingBottom: 40,
+  },
   section: { marginBottom: 20 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: '#333', marginBottom: 12 },
   patientCard: { 
