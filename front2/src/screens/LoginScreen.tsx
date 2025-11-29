@@ -65,14 +65,14 @@ export default function LoginScreen({ onLoginSuccess }: Props) {
   );
 }
 
-const styles = StyleSheet.create<{ container: ViewStyle; title: TextStyle; input: ViewStyle; inputText: TextStyle; button: ViewStyle; buttonText: TextStyle; buttonPressed: ViewStyle }>({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     padding: Platform.select({ web: 24, default: 16 }),
     alignItems: 'center'
-  },
-  title: { fontSize: 22, marginBottom: 12, textAlign: 'center' },
+  } as ViewStyle,
+  title: { fontSize: 22, marginBottom: 12, textAlign: 'center' } as TextStyle,
   input: {
     width: '100%',
     maxWidth: 420,
@@ -81,9 +81,10 @@ const styles = StyleSheet.create<{ container: ViewStyle; title: TextStyle; input
     paddingVertical: 8,
     paddingHorizontal: 12,
     marginBottom: 10,
-    borderRadius: 6
-  },
-  inputText: { fontSize: 14 },
+    borderRadius: 6,
+    backgroundColor: '#fff'
+  } as ViewStyle,
+  inputText: { fontSize: 14, color: '#333' } as TextStyle,
   button: {
     width: '100%',
     maxWidth: 420,
@@ -91,7 +92,7 @@ const styles = StyleSheet.create<{ container: ViewStyle; title: TextStyle; input
     paddingVertical: 10,
     borderRadius: 6,
     alignItems: 'center'
-  },
-  buttonPressed: { opacity: 0.85 },
-  buttonText: { color: '#fff', fontSize: 16 }
+  } as ViewStyle,
+  buttonPressed: { opacity: 0.85 } as ViewStyle,
+  buttonText: { color: '#fff', fontSize: 16 } as TextStyle
 });
