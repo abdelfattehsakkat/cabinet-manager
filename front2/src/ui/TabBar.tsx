@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getTabBarMenus, getHamburgerMenus, shouldShowMoreButton } from '../config/menuConfig';
 import ProfileMenu from './ProfileMenu';
 
@@ -22,6 +23,7 @@ type Props = {
 export default function TabBar({ active, onChange, userPermissions, onLogout }: Props) {
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const insets = useSafeAreaInsets();
   
   const tabBarMenus = getTabBarMenus(userPermissions);
   const hamburgerMenus = getHamburgerMenus(userPermissions);
@@ -33,7 +35,7 @@ export default function TabBar({ active, onChange, userPermissions, onLogout }: 
 
   return (
     <>
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
         {displayedTabs.map(item => {
           const isActive = active === item.key;
           return (
@@ -154,7 +156,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
-    paddingBottom: Platform.OS === 'ios' ? 20 : 0, // Safe area for iOS
+    // paddingBottom géré dynamiquement via useSafeAreaInsets
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,

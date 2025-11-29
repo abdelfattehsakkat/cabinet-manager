@@ -1,9 +1,11 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Platform } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import LoginScreen from './src/screens/LoginScreen';
 import Dashboard from './src/screens/Dashboard';
 import Home from './src/screens/Home';
+import WelcomeOverlay from './src/ui/WelcomeOverlay';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type UserInfo = {
@@ -17,6 +19,8 @@ export type UserInfo = {
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [user, setUser] = useState<UserInfo | null>(null);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [welcomeName, setWelcomeName] = useState('');
 
   const loadUserInfo = async () => {
     try {
@@ -47,19 +51,45 @@ export default function App() {
     setUser(null);
   };
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = async () => {
+    // Charger les infos user pour l'animation de bienvenue
+    try {
+      const userStr = await AsyncStorage.getItem('user');
+      if (userStr) {
+        const userData = JSON.parse(userStr);
+        setWelcomeName(userData.firstName || userData.email?.split('@')[0] || '');
+        setShowWelcome(true);
+      } else {
+        loadUserInfo();
+      }
+    } catch (e) {
+      loadUserInfo();
+    }
+  };
+
+  const handleWelcomeFinish = () => {
+    setShowWelcome(false);
     loadUserInfo();
   };
 
   return (
-    <View style={styles.container}>
-      {loggedIn ? (
-        <Home onLogout={handleLogout} user={user} />
-      ) : (
-        <LoginScreen onLoginSuccess={handleLoginSuccess} />
-      )}
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        <StatusBar style={showWelcome ? "light" : "dark"} backgroundColor={showWelcome ? "#1976d2" : "#fff"} />
+        {loggedIn ? (
+          <Home onLogout={handleLogout} user={user} />
+        ) : (
+          <LoginScreen onLoginSuccess={handleLoginSuccess} />
+        )}
+        
+        {/* Animation de bienvenue */}
+        <WelcomeOverlay 
+          visible={showWelcome} 
+          userName={welcomeName}
+          onFinish={handleWelcomeFinish}
+        />
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, TextInput, Pressable, StyleSheet, Platform, ScrollView } from 'react-native';
+import { Modal, View, Text, TextInput, Pressable, StyleSheet, Platform, ScrollView, KeyboardAvoidingView, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../api/client';
 
@@ -83,18 +83,34 @@ export default function AppointmentDetailModal({ visible, appointment, onClose, 
 
   const handleDelete = async () => {
     if (!appointment) return;
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce rendez-vous ?')) return;
     
-    setLoading(true);
-    try {
-      await api.del(`/appointments/${appointment._id}`);
-      onDeleted && onDeleted();
-      onClose();
-    } catch (err) {
-      console.error('delete appointment error', err);
-      alert('Erreur lors de la suppression');
-    } finally {
-      setLoading(false);
+    const doDelete = async () => {
+      setLoading(true);
+      try {
+        await api.del(`/appointments/${appointment._id}`);
+        onDeleted && onDeleted();
+        onClose();
+      } catch (err) {
+        console.error('delete appointment error', err);
+        Alert.alert('Erreur', 'Erreur lors de la suppression');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (confirm('Êtes-vous sûr de vouloir supprimer ce rendez-vous ?')) {
+        await doDelete();
+      }
+    } else {
+      Alert.alert(
+        'Confirmer la suppression',
+        'Êtes-vous sûr de vouloir supprimer ce rendez-vous ?',
+        [
+          { text: 'Annuler', style: 'cancel' },
+          { text: 'Supprimer', style: 'destructive', onPress: doDelete }
+        ]
+      );
     }
   };
 
@@ -160,14 +176,23 @@ export default function AppointmentDetailModal({ visible, appointment, onClose, 
 
   return (
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
-      <View style={styles.backdrop}>
+      <KeyboardAvoidingView 
+        style={styles.backdrop}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
         <View style={styles.sheet}>
           <View style={styles.header}>
             <Text style={styles.title}>Détails du rendez-vous</Text>
             <Pressable onPress={onClose}><Text style={styles.close}>✕</Text></Pressable>
           </View>
 
-          <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+          <ScrollView 
+            style={styles.scrollContainer} 
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={true}
+            keyboardShouldPersistTaps="handled"
+          >
             {/* Patient Info */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Patient</Text>
@@ -357,20 +382,35 @@ export default function AppointmentDetailModal({ visible, appointment, onClose, 
             </View>
           </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 12 },
+  backdrop: { 
+    flex: 1, 
+    backgroundColor: 'rgba(0,0,0,0.5)', 
+    justifyContent: 'flex-end',
+    ...Platform.select({
+      web: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 12
+      },
+      default: {}
+    })
+  },
   sheet: { 
     backgroundColor: '#fff', 
-    borderRadius: 10, 
+    borderRadius: Platform.OS === 'web' ? 10 : 20,
+    borderBottomLeftRadius: Platform.OS === 'web' ? 10 : 0,
+    borderBottomRightRadius: Platform.OS === 'web' ? 10 : 0,
     padding: Platform.OS === 'web' ? 20 : 16,
-    maxWidth: 600, 
-    width: Platform.OS === 'web' ? '90%' : '95%',
-    maxHeight: '90%',
+    paddingBottom: Platform.OS === 'web' ? 20 : 32,
+    maxWidth: Platform.OS === 'web' ? 600 : '100%', 
+    width: Platform.OS === 'web' ? '90%' : '100%',
+    maxHeight: Platform.OS === 'web' ? '90%' : '85%',
     ...Platform.select({
       web: {},
       default: {
@@ -382,6 +422,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '800' },
   close: { fontSize: 22, padding: 6, color: '#666' },
   scrollContainer: { flex: 1 },
+  scrollContent: { paddingBottom: 20 },
   section: { marginBottom: 20 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: '#333', marginBottom: 12 },
   patientCard: { 

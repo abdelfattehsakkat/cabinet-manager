@@ -29,7 +29,6 @@ export default function LoginScreen({ onLoginSuccess }: Props) {
           console.warn('Could not store user info', e);
         }
       }
-      Alert.alert('Succès', 'Connecté');
       if (onLoginSuccess) onLoginSuccess();
     } catch (err: any) {
       console.error('Login error', err);

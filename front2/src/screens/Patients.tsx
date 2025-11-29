@@ -44,8 +44,11 @@ export default function Patients(_props: Props) {
     fetchPage(1);
   }, []);
 
-  // Defensive: stop third-party content scripts from receiving focus events
+  // Defensive: stop third-party content scripts from receiving focus events (Web only)
   useEffect(() => {
+    // Only run on web platform where document exists
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    
     const handler = (e: any) => {
       try {
         if (!searchRef.current) return;

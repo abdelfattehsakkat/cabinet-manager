@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Modal, View, Text, TextInput, Pressable, StyleSheet, Platform, FlatList } from 'react-native';
+import { Modal, View, Text, TextInput, Pressable, StyleSheet, Platform, FlatList, ScrollView, KeyboardAvoidingView, Dimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../api/client';
 import { searchPatients, createPatient, Patient } from '../api/patients';
@@ -209,7 +209,11 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
 
   return (
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
-      <View style={styles.backdrop}>
+      <KeyboardAvoidingView 
+        style={styles.backdrop} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
         <View style={styles.sheet}>
           <View style={styles.header}>
             <Text style={styles.title}>Nouveau rendez-vous</Text>
@@ -233,7 +237,12 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
           </View>
 
           {/* Scrollable body */}
-          <View style={styles.scrollContainer}>
+          <ScrollView 
+            style={styles.scrollContainer}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={true}
+            keyboardShouldPersistTaps="handled"
+          >
             <View style={styles.body}>
             {/* EXISTING PATIENT MODE */}
             {mode === 'existing' && (
@@ -411,32 +420,40 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
               </Text>
             </Pressable>
             </View>
-          </View>
+          </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 12 },
+  backdrop: { 
+    flex: 1, 
+    backgroundColor: 'rgba(0,0,0,0.5)', 
+    justifyContent: 'flex-end',
+    ...Platform.select({
+      web: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 12
+      },
+      default: {}
+    })
+  },
   sheet: { 
     backgroundColor: '#fff', 
-    borderRadius: 10, 
+    borderRadius: Platform.OS === 'web' ? 10 : 20,
+    borderBottomLeftRadius: Platform.OS === 'web' ? 10 : 0,
+    borderBottomRightRadius: Platform.OS === 'web' ? 10 : 0,
     padding: Platform.OS === 'web' ? 20 : 16,
-    maxWidth: 760, 
+    paddingBottom: Platform.OS === 'web' ? 20 : 32,
+    maxWidth: Platform.OS === 'web' ? 760 : '100%', 
     width: Platform.OS === 'web' ? '90%' : '100%',
     alignSelf: 'center', 
-    maxHeight: '90%',
+    maxHeight: Platform.OS === 'web' ? '90%' : '85%',
     display: 'flex',
     flexDirection: 'column',
-    ...Platform.select({
-      web: {},
-      default: {
-        width: '95%',
-        maxHeight: '95%'
-      }
-    })
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   title: { fontSize: 20, fontWeight: '800' },
@@ -451,13 +468,9 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
-    overflowY: 'auto',
-    ...Platform.select({
-      web: {
-        overflowY: 'auto'
-      },
-      default: {}
-    })
+  },
+  scrollContent: {
+    paddingBottom: 20,
   },
   toggleButton: { 
     flex: 1, 
