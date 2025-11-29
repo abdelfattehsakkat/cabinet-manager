@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, StyleSheet, Dimensions, Platform, TouchableOpacity, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { User } from '../api/users';
 
 type Props = {
@@ -65,11 +66,12 @@ export default function UserDetailModal({ visible, user, onClose, onEdit }: Prop
   };
 
   const roleBadge = getRoleBadgeStyle(user?.role);
+  const insets = useSafeAreaInsets();
 
   return (
     <Modal visible={visible} animationType="slide" transparent={isWeb} onRequestClose={onClose}>
       <View style={[styles.backdrop, !isWeb && styles.backdropMobile]}>
-        <View style={[styles.modal, isWeb ? styles.modalWeb : styles.modalMobile]}>
+        <View style={[styles.modal, isWeb ? styles.modalWeb : styles.modalMobile, !isWeb && { paddingTop: insets.top }]}>
           {/* Header */}
           <View style={styles.header}>
             <View style={[styles.avatar, { backgroundColor: getAvatarColor(user?.lastName) }]}>

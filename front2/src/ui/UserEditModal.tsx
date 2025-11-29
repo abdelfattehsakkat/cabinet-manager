@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Platform, Dimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import usersApi, { User, UserRole, CreateUserPayload, UpdateUserPayload } from '../api/users';
 
 type Props = {
@@ -127,10 +128,12 @@ export default function UserEditModal({ visible, user, onClose, onSaved, creatin
     }
   };
 
+  const insets = useSafeAreaInsets();
+
   return (
     <Modal visible={visible} animationType="slide" transparent={isWeb} onRequestClose={onClose}>
       <View style={[styles.backdrop, !isWeb && styles.backdropMobile]}>
-        <View style={[styles.modal, isWeb ? styles.modalWeb : styles.modalMobile]}>
+        <View style={[styles.modal, isWeb ? styles.modalWeb : styles.modalMobile, !isWeb && { paddingTop: insets.top }]}>
           {/* Header */}
           <View style={styles.header}>
             <View style={[styles.avatar, { backgroundColor: getAvatarColor(form.lastName || 'N') }]}>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, StyleSheet, ScrollView, Dimensions, Platform, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Patient } from '../api/patients';
 
 type Props = {
@@ -58,11 +59,12 @@ export default function PatientDetailModal({ visible, patient, onClose }: Props)
   };
 
   const age = calculateAge(patient?.dateOfBirth);
+  const insets = useSafeAreaInsets();
 
   return (
     <Modal visible={visible} animationType="slide" transparent={isWeb} onRequestClose={onClose}>
       <View style={[styles.backdrop, !isWeb && styles.backdropMobile]}>
-        <View style={[styles.modal, isWeb ? styles.modalWeb : styles.modalMobile]}>
+        <View style={[styles.modal, isWeb ? styles.modalWeb : styles.modalMobile, !isWeb && { paddingTop: insets.top }]}>
           {/* Header */}
           <View style={styles.header}>
             <View style={[styles.avatar, { backgroundColor: getAvatarColor(patient?.lastName) }]}>

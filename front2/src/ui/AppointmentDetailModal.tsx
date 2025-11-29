@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, TextInput, Pressable, StyleSheet, Platform, ScrollView, KeyboardAvoidingView, Alert, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../api/client';
+import DateTimePickerMobile from './DateTimePickerMobile';
 
 type Appointment = {
   _id: string;
@@ -32,6 +34,11 @@ export default function AppointmentDetailModal({ visible, appointment, onClose, 
   const [status, setStatus] = useState('scheduled');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Hook must be called before any conditional return
+  const { width } = useWindowDimensions();
+  const isWeb = width >= 768 || Platform.OS === 'web';
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (appointment && visible) {
@@ -165,22 +172,17 @@ export default function AppointmentDetailModal({ visible, appointment, onClose, 
       }}
     />
   ) : (
-    <TextInput 
-      style={styles.input} 
-      value={formatDateTime(dateStr)} 
-      onChangeText={setDateStr} 
-      placeholder="JJ/MM/AAAA HH:MM"
-      editable={editMode}
+    <DateTimePickerMobile
+      value={dateStr}
+      onChange={setDateStr}
+      placeholder="Sélectionner date et heure"
     />
   );
-
-  const { width } = useWindowDimensions();
-  const isWeb = width >= 768 || Platform.OS === 'web';
 
   return (
     <Modal visible={visible} animationType="slide" transparent={isWeb} onRequestClose={onClose}>
       <View style={[styles.backdrop, !isWeb && styles.backdropMobile]}>
-        <View style={[styles.modal, isWeb ? styles.modalWeb : styles.modalMobile]}>
+        <View style={[styles.modal, isWeb ? styles.modalWeb : styles.modalMobile, !isWeb && { paddingTop: insets.top }]}>
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>Détails du rendez-vous</Text>
@@ -315,7 +317,7 @@ export default function AppointmentDetailModal({ visible, appointment, onClose, 
                   {appointment.status !== 'completed' && appointment.status !== 'cancelled' && (
                     <View style={styles.quickActions}>
                       <Pressable 
-                        style={[styles.button, styles.buttonSuccess, { flex: 1, marginRight: 8 }]} 
+                        style={[styles.button, styles.buttonSuccess, { flex: 1, marginRight: 4 }]} 
                         onPress={async () => {
                           try {
                             await api.put(`/appointments/${appointment._id}`, { status: 'completed' });
@@ -330,7 +332,7 @@ export default function AppointmentDetailModal({ visible, appointment, onClose, 
                         <Text style={styles.buttonText}>✓ Terminé</Text>
                       </Pressable>
                       <Pressable 
-                        style={[styles.button, styles.buttonWarning, { flex: 1 }]} 
+                        style={[styles.button, styles.buttonWarning, { flex: 1, marginLeft: 4 }]} 
                         onPress={async () => {
                           try {
                             await api.put(`/appointments/${appointment._id}`, { status: 'noShow' });
@@ -346,15 +348,15 @@ export default function AppointmentDetailModal({ visible, appointment, onClose, 
                       </Pressable>
                     </View>
                   )}
-                  <View style={{ flexDirection: Platform.OS === 'web' ? 'row' : 'column', gap: 8, marginTop: 8 }}>
+                  <View style={styles.quickActions}>
                     <Pressable 
-                      style={[styles.button, styles.buttonPrimary, Platform.OS !== 'web' && { marginBottom: 8 }]} 
+                      style={[styles.button, styles.buttonPrimary, { flex: 1, marginRight: 4 }]} 
                       onPress={() => setEditMode(true)}
                     >
                       <Text style={styles.buttonText}>Modifier</Text>
                     </Pressable>
                     <Pressable 
-                      style={[styles.button, styles.buttonDanger]} 
+                      style={[styles.button, styles.buttonDanger, { flex: 1, marginLeft: 4 }]} 
                       onPress={handleDelete}
                       disabled={loading}
                     >
@@ -363,9 +365,9 @@ export default function AppointmentDetailModal({ visible, appointment, onClose, 
                   </View>
                 </>
               ) : (
-                <View style={{ flexDirection: Platform.OS === 'web' ? 'row' : 'column', gap: 8 }}>
+                <View style={styles.quickActions}>
                   <Pressable 
-                    style={[styles.button, styles.buttonSuccess, Platform.OS !== 'web' && { marginBottom: 8 }]} 
+                    style={[styles.button, styles.buttonSuccess, { flex: 1, marginRight: 4 }]} 
                     onPress={handleUpdate}
                     disabled={loading}
                   >
@@ -374,7 +376,7 @@ export default function AppointmentDetailModal({ visible, appointment, onClose, 
                     </Text>
                   </Pressable>
                   <Pressable 
-                    style={[styles.button, styles.buttonSecondary]} 
+                    style={[styles.button, styles.buttonSecondary, { flex: 1, marginLeft: 4 }]} 
                     onPress={() => setEditMode(false)}
                   >
                     <Text style={styles.buttonText}>Annuler</Text>
@@ -487,8 +489,7 @@ const styles = StyleSheet.create({
   },
   quickActions: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 8
+    marginBottom: 12,
   },
   statusPicker: { 
     flexDirection: 'row', 
@@ -512,8 +513,7 @@ const styles = StyleSheet.create({
   statusOptionText: { fontSize: 13, color: '#666', fontWeight: '600' },
   statusOptionTextActive: { color: '#fff' },
   actions: { 
-    flexDirection: 'row', 
-    gap: 12,
+    flexDirection: 'column',
     marginTop: 12
   },
   button: { 

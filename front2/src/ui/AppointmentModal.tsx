@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Modal, View, Text, TextInput, Pressable, StyleSheet, Platform, FlatList, ScrollView, Dimensions, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../api/client';
 import { searchPatients, createPatient, Patient } from '../api/patients';
+import DateTimePickerMobile from './DateTimePickerMobile';
 
 type Props = {
   visible: boolean;
@@ -179,7 +181,7 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
     setDateOfBirth(formatted);
   };
 
-  // For web, use native datetime-local input
+  // For web, use native datetime-local input; for mobile, use custom picker
   const DateInput = Platform.OS === 'web' ? (
     <input 
       type="datetime-local" 
@@ -198,22 +200,21 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
       }}
     />
   ) : (
-    <TextInput 
-      style={styles.input} 
-      value={dateStr} 
-      onChangeText={setDateStr} 
-      placeholder="JJ/MM/AAAA HH:MM"
-      autoComplete="off"
+    <DateTimePickerMobile
+      value={dateStr}
+      onChange={setDateStr}
+      placeholder="Sélectionner date et heure"
     />
   );
 
   const { width } = useWindowDimensions();
   const isWeb = width >= 768 || Platform.OS === 'web';
+  const insets = useSafeAreaInsets();
 
   return (
     <Modal visible={visible} animationType="slide" transparent={isWeb} onRequestClose={onClose}>
       <View style={[styles.backdrop, !isWeb && styles.backdropMobile]}>
-        <View style={[styles.modal, isWeb ? styles.modalWeb : styles.modalMobile]}>
+        <View style={[styles.modal, isWeb ? styles.modalWeb : styles.modalMobile, !isWeb && { paddingTop: insets.top }]}>
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>Nouveau rendez-vous</Text>
@@ -265,7 +266,10 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
                       <FlatList 
                         data={suggestions} 
                         keyExtractor={(it) => it._id} 
-                        style={{ maxHeight: 240, backgroundColor: '#fff' }} 
+                        style={{ maxHeight: 240, backgroundColor: '#fff' }}
+                        nestedScrollEnabled={true}
+                        showsVerticalScrollIndicator={true}
+                        keyboardShouldPersistTaps="handled"
                         renderItem={({ item }) => (
                           <Pressable 
                             onPress={() => { 

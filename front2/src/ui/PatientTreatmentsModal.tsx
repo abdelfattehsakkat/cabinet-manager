@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, View, Text, StyleSheet, FlatList, ActivityIndicator, Pressable, Alert, Platform, Dimensions, TouchableOpacity, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import treatmentsApi, { Treatment } from '../api/treatments';
 import { Patient } from '../api/patients';
 import TreatmentDialog from './TreatmentDialog';
@@ -103,6 +104,7 @@ export default function PatientTreatmentsModal({ visible, patient, onClose }: Pr
   };
 
   const totals = calculateTotals();
+  const insets = useSafeAreaInsets();
 
   // Render for Web: Modern Table
   const renderWebTable = () => (
@@ -226,7 +228,7 @@ export default function PatientTreatmentsModal({ visible, patient, onClose }: Pr
   return (
     <Modal visible={visible} animationType="slide" transparent={isWeb} onRequestClose={onClose}>
       <View style={[styles.backdrop, !isWeb && styles.backdropMobile]}>
-        <View style={[styles.modal, isWeb ? styles.modalWeb : styles.modalMobile]}>
+        <View style={[styles.modal, isWeb ? styles.modalWeb : styles.modalMobile, !isWeb && { paddingTop: insets.top }]}>
           {/* Header */}
           <View style={styles.header}>
             <View style={[styles.avatar, { backgroundColor: getAvatarColor(patient?.lastName) }]}>
