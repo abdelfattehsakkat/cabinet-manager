@@ -142,12 +142,17 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
         patient = created;
       }
 
+      // Parse the datetime-local string and preserve the local time when converting to ISO
+      const dateObj = new Date(dateStr);
+      // Remove timezone offset to keep the user's intended time
+      const localDate = new Date(dateObj.getTime() - dateObj.getTimezoneOffset() * 60000);
+      
       const payload: any = {
         doctor: doctorId,
         patientId: patient._id,
         patientFirstName: patient.firstName,
         patientLastName: patient.lastName,
-        date: new Date(dateStr).toISOString(),
+        date: localDate.toISOString(),
         duration: Number(duration) || 30,
         type,
         status: 'scheduled'

@@ -42,10 +42,15 @@ export default function AppointmentDetailModal({ visible, appointment, onClose, 
 
   useEffect(() => {
     if (appointment && visible) {
-      // Convert date to local datetime-local format
+      // Parse the UTC date and format it for datetime-local input (which expects local time)
       const d = new Date(appointment.date);
-      const local = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
-      const isoLocal = new Date(local.getTime() - local.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      const year = d.getUTCFullYear();
+      const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(d.getUTCDate()).padStart(2, '0');
+      const hours = String(d.getUTCHours()).padStart(2, '0');
+      const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+      const isoLocal = `${year}-${month}-${day}T${hours}:${minutes}`;
+      
       setDateStr(isoLocal);
       setDuration(String(appointment.duration || 30));
       setType(appointment.type || 'Consultation');
@@ -67,9 +72,14 @@ export default function AppointmentDetailModal({ visible, appointment, onClose, 
       const user = JSON.parse(userRaw);
       const doctorId = user._id || user.id;
 
+      // Parse the datetime-local string and preserve the local time when converting to ISO
+      const dateObj = new Date(dateStr);
+      // Remove timezone offset to keep the user's intended time
+      const localDate = new Date(dateObj.getTime() - dateObj.getTimezoneOffset() * 60000);
+      
       const payload = {
         doctor: doctorId,
-        date: new Date(dateStr).toISOString(),
+        date: localDate.toISOString(),
         duration: Number(duration) || 30,
         type,
         status,
@@ -125,9 +135,19 @@ export default function AppointmentDetailModal({ visible, appointment, onClose, 
 
   const patientFullName = appointment.patientName || `${appointment.patientFirstName} ${appointment.patientLastName}`;
   const appointmentDate = new Date(appointment.date);
-  const localDate = new Date(appointmentDate.getTime() + appointmentDate.getTimezoneOffset() * 60000);
-  const formattedDate = localDate.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const formattedTime = localDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  // Use UTC values for display since we store times as UTC preserving the user's local time
+  const formattedDate = appointmentDate.toLocaleDateString('fr-FR', { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric',
+    timeZone: 'UTC'
+  });
+  const formattedTime = appointmentDate.toLocaleTimeString('fr-FR', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    timeZone: 'UTC'
+  });
 
   const statusLabels: Record<string, string> = {
     scheduled: 'Planifié',
