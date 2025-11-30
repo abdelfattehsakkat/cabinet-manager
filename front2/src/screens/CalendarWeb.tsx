@@ -29,11 +29,13 @@ type Props = {
 
 export default function CalendarWeb({ appointments, onSelect, onCreate, onUpdateStatus, onMove }: Props) {
   const calendarRef = useRef<any>(null);
-  // compute today's appointments for the left summary
-  const todayKey = new Date().toDateString();
+  // compute today's appointments for the left summary using UTC dates
+  const now = new Date();
+  const todayUTC = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
   const todays = appointments.filter(a => {
     const d = new Date(a.date);
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate()).toDateString() === todayKey;
+    const appointmentDateUTC = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+    return appointmentDateUTC === todayUTC;
   }).sort((l, r) => new Date(l.date).getTime() - new Date(r.date).getTime());
 
   if (!FullCalendar) return <div>Calendar (web) not available</div>;
@@ -77,8 +79,7 @@ export default function CalendarWeb({ appointments, onSelect, onCreate, onUpdate
     noShow: 'Absent'
   };
 
-  // Calculate stats for sidebar
-  const now = new Date();
+  // Calculate stats for sidebar (reusing 'now' from above)
   const upcomingToday = todays.filter(a => {
     const d = new Date(a.date);
     return d.getTime() > now.getTime() && a.status !== 'completed' && a.status !== 'cancelled';
@@ -92,15 +93,15 @@ export default function CalendarWeb({ appointments, onSelect, onCreate, onUpdate
     onSelect && onSelect(appointment);
   };
 
-  // Convertir une date en ISO string en préservant l'heure locale (évite le décalage UTC)
-  const toLocalISOString = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  // Convertir une date en ISO string en utilisant UTC (car FullCalendar est en mode UTC)
+  const toUTCISOString = (date: Date): string => {
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const hours = String(date.getUTCHours()).padStart(2, '0');
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}Z`;
   };
 
   // Handle drag & drop
@@ -118,7 +119,7 @@ export default function CalendarWeb({ appointments, onSelect, onCreate, onUpdate
     }
     
     // Utiliser toLocalISOString pour préserver l'heure locale
-    const newDate = toLocalISOString(startDate);
+    const newDate = toUTCISOString(startDate);
 
     try {
       if (onMove) {
@@ -147,7 +148,7 @@ export default function CalendarWeb({ appointments, onSelect, onCreate, onUpdate
       return;
     }
     
-    const newDate = toLocalISOString(startDate);
+    const newDate = toUTCISOString(startDate);
 
     try {
       if (onMove) {
@@ -179,7 +180,8 @@ export default function CalendarWeb({ appointments, onSelect, onCreate, onUpdate
           
           {todays.map((a, idx) => {
             const d = new Date(a.date);
-            const time = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false });
+            // Use UTC timezone since dates are stored as UTC preserving local time
+            const time = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' });
             const isPast = d.getTime() < now.getTime();
             const isNext = nextAppointment?._id === a._id;
             const color = statusColors[a.status || 'scheduled'] || '#1976d2';
@@ -279,10 +281,13 @@ export default function CalendarWeb({ appointments, onSelect, onCreate, onUpdate
             }}
             expandRows={true}
             contentHeight={'auto'}
-            timeZone={'local'}
+            timeZone={'UTC'}
             events={appointments.map(a => {
-              const start = new Date(a.date);
-              const end = new Date(start.getTime() + ((a.duration || 30) * 60000));
+              // Parse the ISO date and use it directly - FullCalendar with UTC timezone will display correctly
+              const start = a.date;
+              const startDate = new Date(a.date);
+              const endDate = new Date(startDate.getTime() + ((a.duration || 30) * 60000));
+              const end = endDate.toISOString();
               const color = statusColors[a.status || 'scheduled'] || '#1976d2';
               return { 
                 id: a._id, 

@@ -184,7 +184,8 @@ export default function Dashboard() {
           <View style={styles.appointmentsList}>
             {todayAppointments.map((appt, idx) => {
               const d = new Date(appt.date);
-              const time = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+              // Use UTC timezone since dates are stored as UTC preserving local time
+              const time = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
               const isPast = d.getTime() < new Date().getTime();
               const statusColors: Record<string, string> = {
                 scheduled: '#1976d2',

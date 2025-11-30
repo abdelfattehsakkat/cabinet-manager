@@ -31,17 +31,19 @@ export default function AppointmentModal({ visible, initial, initialDuration = 3
   const debounceRef = useRef<number | null>(null as any);
 
   // Convert ISO string to datetime-local format (YYYY-MM-DDTHH:mm)
+  // Since we store dates as UTC preserving local time, we use UTC methods to extract the values
   const formatForDatetimeLocal = (isoString: string | null | undefined): string => {
     if (!isoString) return '';
     try {
       const date = new Date(isoString);
       if (isNaN(date.getTime())) return '';
       // Format: YYYY-MM-DDTHH:mm (required by datetime-local input)
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
+      // Use UTC methods since the date is stored in UTC but represents local time
+      const year = date.getUTCFullYear();
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(date.getUTCDate()).padStart(2, '0');
+      const hours = String(date.getUTCHours()).padStart(2, '0');
+      const minutes = String(date.getUTCMinutes()).padStart(2, '0');
       return `${year}-${month}-${day}T${hours}:${minutes}`;
     } catch {
       return '';

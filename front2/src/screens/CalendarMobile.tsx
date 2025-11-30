@@ -22,13 +22,14 @@ export default function CalendarMobile({ appointments, onSelect, onCreate }: Pro
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
 
-  // Filter appointments for selected date
-  const todayKey = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate()).toDateString();
+  // Filter appointments for selected date using UTC dates
+  const selectedDateKey = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
   const todaysAppointments = appointments
     .filter(a => {
       const d = new Date(a.date);
-      const local = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
-      return new Date(local.getFullYear(), local.getMonth(), local.getDate()).toDateString() === todayKey;
+      // Use UTC date to match the stored date
+      const appointmentDateKey = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+      return appointmentDateKey === selectedDateKey;
     })
     .sort((l, r) => new Date(l.date).getTime() - new Date(r.date).getTime());
 
@@ -61,14 +62,15 @@ export default function CalendarMobile({ appointments, onSelect, onCreate }: Pro
   const getAppointmentAtSlot = (slot: string) => {
     return todaysAppointments.find(a => {
       const d = new Date(a.date);
-      const local = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
-      const time = `${String(local.getHours()).padStart(2, '0')}:${String(local.getMinutes()).padStart(2, '0')}`;
+      // Use UTC time since dates are stored as UTC preserving local time
+      const time = `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
       return time === slot;
     });
   };
 
   // Format date display
-  const isToday = todayKey === new Date().toDateString();
+  const todayDateKey = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+  const isToday = selectedDateKey === todayDateKey;
   const formattedDate = selectedDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   // Status colors
@@ -91,11 +93,11 @@ export default function CalendarMobile({ appointments, onSelect, onCreate }: Pro
     for (let i = 1; i <= daysInMonth; i++) days.push(i);
 
     const hasAppointment = (day: number) => {
-      const dateKey = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day).toDateString();
+      const dateKey = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       return appointments.some(a => {
         const d = new Date(a.date);
-        const local = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
-        return new Date(local.getFullYear(), local.getMonth(), local.getDate()).toDateString() === dateKey;
+        const appointmentDateKey = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+        return appointmentDateKey === dateKey;
       });
     };
 
