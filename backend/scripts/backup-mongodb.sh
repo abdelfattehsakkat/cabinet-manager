@@ -222,7 +222,35 @@ main() {
 
     # Créer le backup
     local archive_path
-    archive_path=$(create_backup)
+    # utiliser un fichier temporaire pour capturer uniquement le chemin retourné
+    local out_file
+    out_file=$(mktemp)
+    # Permettre aux fonctions internes d'écrire sans faire échouer tout le script
+    set +e
+    create_backup > "$out_file" 2>&1
+    local ret=$?
+    set -e
+    # lire la dernière ligne non vide (chemin) retournée par create_backup
+    archive_path=$(awk 'NF{line=$0} END{print line}' "$out_file" || true)
+    rm -f "$out_file"
+
+    if [[ $ret -ne 0 ]]; then
+        log_error "create_backup a échoué (code: $ret)"
+        # afficher les dernières lignes du log pour diagnostic
+        tail -n 80 "$LOG_FILE" >> "$LOG_FILE" 2>&1 || true
+    fi
+
+    # Diagnostic main: afficher la valeur reçue et vérifier l'existence
+    log "Diagnostic-main: archive_path='${archive_path}'"
+    if [[ -z "$archive_path" ]]; then
+        log_error "Diagnostic-main: archive_path vide"
+    else
+        if [[ -f "$archive_path" ]]; then
+            log "Diagnostic-main: -f check PASSED for '$archive_path'"
+        else
+            log "Diagnostic-main: -f check FAILED for '$archive_path'"
+        fi
+    fi
 
     if [[ -z "$archive_path" ]] || [[ ! -f "$archive_path" ]]; then
         log_error "Échec de la création du backup"
