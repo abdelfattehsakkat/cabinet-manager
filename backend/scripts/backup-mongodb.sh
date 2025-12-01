@@ -28,7 +28,7 @@ MONGO_PASSWORD="password"
 MONGO_AUTH_SOURCE="admin"
 
 # Google Drive (rclone)
-RCLONE_REMOTE="gdrive"
+RCLONE_REMOTE="drive-abdelfatteh"
 GDRIVE_FOLDER="cabinet-backups"
 
 # Rétention
