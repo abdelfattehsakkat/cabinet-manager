@@ -128,6 +128,16 @@ create_backup() {
     # Nettoyer le dossier temporaire
     rm -rf "$dump_path"
 
+    # Diagnostic: lister le dossier de backup et afficher le chemin retourné
+    log "Diagnostic: archive_path='${archive_path}'"
+    if [[ -f "$archive_path" ]]; then
+        log "Diagnostic: archive exists (confirmed by -f)"
+    else
+        log "Diagnostic: archive NOT found by -f"
+    fi
+    log "Diagnostic: listing ${BACKUP_DIR}" 
+    ls -la "$BACKUP_DIR" >> "$LOG_FILE" 2>&1 || true
+
     echo "$archive_path"
 }
 
